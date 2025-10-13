@@ -1,8 +1,11 @@
 import re
 import os
 import hashlib
+import zipfile
+import tempfile
+import shutil
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, List
 import logging
 
 logger = logging.getLogger(__name__)
@@ -162,25 +165,61 @@ class FileUtils:
     @staticmethod
     def clean_file_extension(file_path: str) -> str:
         """Clean problematic extensions like .mp3_ -> .mp3."""
-        if file_path.endswith(".mp3_"):
-            new_path = file_path.replace(".mp3_", ".mp3")
-            try:
-                os.rename(file_path, new_path)
-                logger.info(f"Extension corrected: {os.path.basename(file_path)} -> {os.path.basename(new_path)}")
-                return new_path
-            except OSError as e:
-                logger.error(f"Error correcting extension: {e}")
-                return file_path
-        elif file_path.endswith(".m4a_"):
-            new_path = file_path.replace(".m4a_", ".m4a")
-            try:
-                os.rename(file_path, new_path)
-                logger.info(f"Extension corrected: {os.path.basename(file_path)} -> {os.path.basename(new_path)}")
-                return new_path
-            except OSError as e:
-                logger.error(f"Error correcting extension: {e}")
-                return file_path
+        if not os.path.exists(file_path):
+            logger.warning(f"File does not exist: {file_path}")
+            return file_path
+            
+        # Lista de extensiones problemáticas a corregir
+        problematic_extensions = {
+            ".mp3_": ".mp3",
+            ".m4a_": ".m4a",
+            ".wav_": ".wav",
+            ".flac_": ".flac",
+            ".ogg_": ".ogg"
+        }
+        
+        for bad_ext, good_ext in problematic_extensions.items():
+            if file_path.endswith(bad_ext):
+                new_path = file_path.replace(bad_ext, good_ext)
+                try:
+                    # Verificar que el archivo destino no exista
+                    if os.path.exists(new_path):
+                        # Si existe, agregar un sufijo único
+                        base, ext = os.path.splitext(new_path)
+                        counter = 1
+                        while os.path.exists(f"{base}_{counter}{ext}"):
+                            counter += 1
+                        new_path = f"{base}_{counter}{ext}"
+                    
+                    os.rename(file_path, new_path)
+                    logger.info(f"Extension corrected: {os.path.basename(file_path)} -> {os.path.basename(new_path)}")
+                    return new_path
+                except OSError as e:
+                    logger.error(f"Error correcting extension from {file_path} to {new_path}: {e}")
+                    return file_path
+        
         return file_path
+    
+    @staticmethod
+    def fix_all_extensions_in_directory(directory: str) -> int:
+        """Fix all problematic extensions in a directory. Returns number of files fixed."""
+        fixed_count = 0
+        try:
+            if not os.path.exists(directory):
+                return 0
+                
+            for filename in os.listdir(directory):
+                file_path = os.path.join(directory, filename)
+                if os.path.isfile(file_path):
+                    original_path = file_path
+                    fixed_path = FileUtils.clean_file_extension(file_path)
+                    if fixed_path != original_path:
+                        fixed_count += 1
+                        
+        except Exception as e:
+            logger.error(f"Error fixing extensions in directory {directory}: {e}")
+            
+        return fixed_count
 
     @staticmethod
     def get_file_size(file_path: str) -> int:
@@ -234,6 +273,120 @@ class FileUtils:
                     
         except Exception as e:
             logger.error(f"Error cleaning directory {path}: {e}")
+    
+    @staticmethod
+    def create_zip_archive(file_paths: List[str], zip_name: str, output_dir: str) -> Optional[str]:
+        """
+        Create a ZIP archive from a list of files.
+        
+        Args:
+            file_paths: List of full paths to files to include
+            zip_name: Name for the ZIP file (without extension)
+            output_dir: Directory where to save the ZIP
+            
+        Returns:
+            Full path to created ZIP file or None if failed
+        """
+        try:
+            # Sanitize zip name
+            safe_zip_name = FileUtils.sanitize_filename(zip_name)
+            zip_filename = f"{safe_zip_name}.zip"
+            zip_path = os.path.join(output_dir, zip_filename)
+            
+            # Create ZIP archive
+            with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+                for file_path in file_paths:
+                    if os.path.exists(file_path):
+                        # Use just the filename in the archive (no directory structure)
+                        arcname = os.path.basename(file_path)
+                        zipf.write(file_path, arcname)
+                        logger.info(f"Added to ZIP: {arcname}")
+                    else:
+                        logger.warning(f"File not found for ZIP: {file_path}")
+            
+            if os.path.exists(zip_path):
+                logger.info(f"ZIP created successfully: {zip_path}")
+                return zip_path
+            else:
+                logger.error("ZIP file was not created")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error creating ZIP archive: {e}")
+            return None
+    
+    @staticmethod
+    def cleanup_files(file_paths: List[str], keep_zip: bool = True) -> int:
+        """
+        Clean up files after ZIP creation.
+        
+        Args:
+            file_paths: List of file paths to delete
+            keep_zip: Whether to keep ZIP files during cleanup
+            
+        Returns:
+            Number of files successfully deleted
+        """
+        deleted_count = 0
+        
+        for file_path in file_paths:
+            try:
+                if os.path.exists(file_path):
+                    # Skip ZIP files if keep_zip is True
+                    if keep_zip and file_path.endswith('.zip'):
+                        continue
+                        
+                    os.remove(file_path)
+                    deleted_count += 1
+                    logger.info(f"Cleaned up file: {file_path}")
+                    
+            except Exception as e:
+                logger.error(f"Error deleting file {file_path}: {e}")
+        
+        return deleted_count
+    
+    @staticmethod
+    def move_files_to_external_dir(file_paths: List[str], external_dir: str) -> List[str]:
+        """
+        Move files to an external directory outside the backend.
+        
+        Args:
+            file_paths: List of file paths to move
+            external_dir: External directory path
+            
+        Returns:
+            List of new file paths after moving
+        """
+        moved_files = []
+        
+        try:
+            # Ensure external directory exists
+            FileUtils.ensure_directory(external_dir)
+            
+            for file_path in file_paths:
+                if os.path.exists(file_path):
+                    filename = os.path.basename(file_path)
+                    new_path = os.path.join(external_dir, filename)
+                    
+                    # Handle name conflicts
+                    counter = 1
+                    base_name, ext = os.path.splitext(filename)
+                    while os.path.exists(new_path):
+                        new_filename = f"{base_name}_{counter}{ext}"
+                        new_path = os.path.join(external_dir, new_filename)
+                        counter += 1
+                    
+                    try:
+                        shutil.move(file_path, new_path)
+                        moved_files.append(new_path)
+                        logger.info(f"Moved file: {file_path} -> {new_path}")
+                    except Exception as e:
+                        logger.error(f"Error moving file {file_path}: {e}")
+                        
+        except Exception as e:
+            logger.error(f"Error setting up external directory {external_dir}: {e}")
+        
+        return moved_files
 
 class QualityManager:
     """Audio quality manager."""

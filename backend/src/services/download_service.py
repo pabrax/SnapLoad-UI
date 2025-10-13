@@ -1,5 +1,5 @@
 """
-Music Download Controller
+Music Download Service
 
 Handles downloading music from Spotify and YouTube platforms with
 high-quality audio extraction and consistent file naming.
@@ -16,8 +16,8 @@ from enum import Enum
 
 import yt_dlp
 
-from ..utils import URLValidator, FileUtils, QualityManager, ErrorHandler
-from ..settings import settings
+from ..core.utils import URLValidator, FileUtils, QualityManager, ErrorHandler
+from ..core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -101,9 +101,9 @@ class MusicDownloader:
         """Generate output filename with proper formatting."""
         return FileUtils.generate_filename(title, artist, quality, "mp3")
     
-    def download_from_spotify(self, url: str, quality: AudioQuality) -> DownloadResult:
+    def download_from_spotify(self, url: str, quality: AudioQuality, progress_tracker=None) -> DownloadResult:
         """
-        Download music from Spotify using spotdl with direct URL processing.
+        Download music from Spotify using spotdl directly as subprocess.
         
         Args:
             url: Spotify track/album/playlist URL
@@ -113,151 +113,35 @@ class MusicDownloader:
             DownloadResult with success status, file path, and metadata
         """
         try:
-            if not self.spotdl_available:
-                return DownloadResult(
-                    success=False, 
-                    error="SpotDL is not available"
-                )
+            # Import the new Spotify service
+            from .spotify_service import spotify_downloader
             
-            logger.info(f"Downloading from Spotify: {url} with quality {quality.value}")
+            if progress_tracker:
+                progress_tracker.update(5, "preparing", "Preparando descarga de Spotify...")
             
-            # Import required modules
-            import subprocess
-            import tempfile
+            logger.info(f"Downloading from Spotify using simplified spotdl: {url}")
             
-            # Create temporary directory for this download
-            temp_dir = tempfile.mkdtemp(prefix="spotify_download_")
-            logger.info(f"Temporary directory created: {temp_dir}")
+            # Use the new simplified Spotify downloader
+            result = spotify_downloader.download(url, quality, progress_tracker)
             
-            # Direct download command - using temporary directory
-            download_cmd = [
-                "spotdl", "download", url,
-                "--output", temp_dir,
-                "--format", "mp3",
-                "--bitrate", f"{quality.value}k",
-                "--overwrite", "force"
-            ]
-            
-            logger.info(f"Executing command: {' '.join(download_cmd)}")
-            
-            # Execute download
-            result = subprocess.run(download_cmd, capture_output=True, text=True)
-            
-            logger.info(f"Spotdl exit code: {result.returncode}")
-            if result.stdout:
-                logger.info(f"Stdout: {result.stdout}")
-            if result.stderr:
-                logger.warning(f"Stderr: {result.stderr}")
-            
-            if result.returncode == 0:
-                # Search for downloaded file in temporary directory
-                downloaded_file = None
-                temp_files = os.listdir(temp_dir)
-                logger.info(f"Files in temporary directory: {temp_files}")
-                
-                for file in temp_files:
-                    if file.endswith(".mp3"):
-                        downloaded_file = os.path.join(temp_dir, file)
-                        logger.info(f"MP3 file found: {file}")
-                        break
-                    elif file.endswith(".mp3_"):
-                        # If spotdl creates file with mp3_, rename it immediately
-                        old_path = os.path.join(temp_dir, file)
-                        new_file = file.replace(".mp3_", ".mp3")
-                        new_path = os.path.join(temp_dir, new_file)
-                        os.rename(old_path, new_path)
-                        downloaded_file = new_path
-                        logger.info(f"MP3_ file renamed to: {new_file}")
-                        break
-                
-                if downloaded_file and os.path.exists(downloaded_file):
-                    # Get file information
-                    file_size = FileUtils.get_file_size(downloaded_file)
-                    temp_filename = os.path.basename(downloaded_file)
-                    
-                    logger.info(f"Processing downloaded file: {temp_filename}")
-                    
-                    # Clean filename to extract title and artist
-                    clean_filename = temp_filename.replace(".mp3", "")
-                    
-                    # Try to extract artist and title from filename
-                    if " - " in clean_filename:
-                        parts = clean_filename.split(" - ", 1)
-                        artist = parts[0].strip()
-                        title = parts[1].strip()
-                    else:
-                        artist = "Unknown Artist"
-                        title = clean_filename.strip()
-                    
-                    logger.info(f"Extracted metadata - Artist: '{artist}', Title: '{title}'")
-                    
-                    # Generate final filename with clean format
-                    final_filename = self._get_output_filename(title, artist, quality.value)
-                    final_path = os.path.join(self.output_dir, final_filename)
-                    
-                    # Move file from temporary directory to final directory
-                    try:
-                        import shutil
-                        shutil.move(downloaded_file, final_path)
-                        logger.info(f"File moved to: {final_filename}")
-                        
-                        # Clean up temporary directory
-                        shutil.rmtree(temp_dir)
-                        logger.info("Temporary directory cleaned up")
-                        
-                        file_path = final_path
-                    except Exception as e:
-                        logger.error(f"Error moving file: {e}")
-                        # If move fails, use temporary file
-                        file_path = downloaded_file
-                    
-                    metadata = {
-                        "title": title,
-                        "artist": artist,
-                        "album": "Unknown",
-                        "duration": 0,
-                        "quality": quality.value,
-                        "platform": "spotify",
-                        "file_hash": FileUtils.get_file_hash(file_path)
-                    }
-                    
-                    return DownloadResult(
-                        success=True,
-                        file_path=file_path,
-                        metadata=metadata,
-                        file_size=file_size
-                    )
-                else:
-                    # Clean up temporary directory if no file found
-                    try:
-                        import shutil
-                        shutil.rmtree(temp_dir)
-                    except:
-                        pass
-                    
-                    return DownloadResult(
-                        success=False,
-                        error="File was not created after download"
-                    )
+            if result.success:
+                logger.info(f"Spotify download successful: {result.file_path}")
             else:
-                # Clean up temporary directory on error
-                try:
-                    import shutil
-                    shutil.rmtree(temp_dir)
-                except:
-                    pass
-                
-                error_msg = result.stderr or result.stdout or "Unknown spotdl error"
-                return DownloadResult(
-                    success=False,
-                    error=f"Spotdl error: {error_msg}"
-                )
-                
+                logger.error(f"Spotify download failed: {result.error}")
+            
+            return result
+            
         except Exception as e:
-            logger.error(f"Error downloading from Spotify: {e}")
-            return DownloadResult(success=False, error=str(e))
+            logger.error(f"Error in Spotify download: {e}")
+            if progress_tracker:
+                progress_tracker.update(0, "error", f"Error: {str(e)}")
+            
+            return DownloadResult(
+                success=False,
+                error=f"Error descargando desde Spotify: {str(e)}"
+            )
     
-    def download_from_youtube(self, url: str, quality: AudioQuality) -> DownloadResult:
+    def download_from_youtube(self, url: str, quality: AudioQuality, progress_tracker=None) -> DownloadResult:
         """
         Download music from YouTube/YouTube Music using yt-dlp.
         
@@ -269,11 +153,35 @@ class MusicDownloader:
             DownloadResult with success status, file path, and metadata
         """
         try:
+            # Update progress
+            if progress_tracker:
+                progress_tracker.update(5, "preparing", "Preparando descarga de YouTube...")
+            
             logger.info(f"Downloading from YouTube: {url} with quality {quality.value}")
             
             # Temporary name to avoid conflicts
             temp_template = os.path.join(self.output_dir, 'temp_%(title)s.%(ext)s')
             
+            # Progress hook for yt-dlp
+            def progress_hook(d):
+                if progress_tracker and d['status'] == 'downloading':
+                    if 'total_bytes' in d and d['total_bytes']:
+                        downloaded = d.get('downloaded_bytes', 0)
+                        total = d['total_bytes']
+                        percentage = int((downloaded / total) * 60) + 10  # 10-70% for download
+                        progress_tracker.update(percentage, "downloading", f"Descargando: {percentage-10}/60%")
+                    elif '_percent_str' in d:
+                        # Fallback to yt-dlp's percentage string
+                        percent_str = d['_percent_str'].strip().replace('%', '')
+                        try:
+                            percent = int(float(percent_str))
+                            progress = min(int(percent * 0.6) + 10, 70)  # Scale to 10-70%
+                            progress_tracker.update(progress, "downloading", f"Descargando: {percent}%")
+                        except:
+                            pass
+                elif progress_tracker and d['status'] == 'finished':
+                    progress_tracker.update(70, "converting", "Convirtiendo a MP3...")
+
             # Configure yt-dlp options with timeouts and best settings
             ydl_opts = {
                 'format': 'bestaudio/best',
@@ -290,6 +198,7 @@ class MusicDownloader:
                 'keepvideo': False,
                 'quiet': False,  # Changed to see more information
                 'no_warnings': False,  # Changed for debugging
+                'progress_hooks': [progress_hook],  # Add progress hook
                 # Timeout and network configurations
                 'socket_timeout': 30,  # Socket timeout
                 'fragment_retries': 3,  # Fragment retries
@@ -349,6 +258,10 @@ class MusicDownloader:
                         error=f"Error during download: {str(e)}"
                     )
                 
+                # Update progress
+                if progress_tracker:
+                    progress_tracker.update(85, "finalizing", "Finalizando descarga...")
+                
                 # Find downloaded file and rename it
                 temp_file = None
                 for file in os.listdir(self.output_dir):
@@ -389,6 +302,11 @@ class MusicDownloader:
                     "file_hash": FileUtils.get_file_hash(file_path)
                 }
                 
+                # Update progress - completed
+                filename = os.path.basename(file_path)
+                if progress_tracker:
+                    progress_tracker.update(100, "completed", f"Descarga completada: {filename}", None, filename)
+                
                 return DownloadResult(
                     success=True,
                     file_path=file_path,
@@ -400,7 +318,7 @@ class MusicDownloader:
             logger.error(f"Error downloading from YouTube: {e}")
             return DownloadResult(success=False, error=str(e))
     
-    def download_audio(self, url: str, quality: AudioQuality = AudioQuality.HIGH) -> DownloadResult:
+    def download_audio(self, url: str, quality: AudioQuality = AudioQuality.HIGH, progress_tracker=None) -> DownloadResult:
         """Main method to download audio from any supported platform."""
         try:
             # Validate URL
@@ -427,9 +345,9 @@ class MusicDownloader:
             
             # Download according to platform
             if platform == Platform.SPOTIFY:
-                return self.download_from_spotify(url, quality)
+                return self.download_from_spotify(url, quality, progress_tracker)
             elif platform in [Platform.YOUTUBE, Platform.YOUTUBE_MUSIC]:
-                return self.download_from_youtube(url, quality)
+                return self.download_from_youtube(url, quality, progress_tracker)
             else:
                 return DownloadResult(
                     success=False,
@@ -561,5 +479,31 @@ class MusicDownloader:
         except Exception as e:
             logger.error(f"Error limpiando archivos temporales: {e}")
 
-# Instancia global del downloader
+class DownloadService:
+    """
+    Service layer for music download operations.
+    Provides a clean interface for download functionality.
+    """
+    
+    def __init__(self):
+        self._downloader = MusicDownloader()
+    
+    def download_audio(self, url: str, quality: str = "192", progress_tracker=None):
+        """Download audio from supported platforms."""
+        quality_enum = AudioQuality(quality)
+        return self._downloader.download_audio(url, quality_enum, progress_tracker)
+    
+    def get_audio_info(self, url: str):
+        """Get audio information without downloading."""
+        return self._downloader.get_audio_info(url)
+    
+    def health_check(self):
+        """Check service health."""
+        return self._downloader.health_check()
+    
+    def cleanup(self):
+        """Cleanup temporary files."""
+        return self._downloader.cleanup()
+
+# Legacy global instance for backward compatibility
 downloader = MusicDownloader()

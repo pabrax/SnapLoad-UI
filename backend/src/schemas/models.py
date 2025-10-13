@@ -41,6 +41,7 @@ class DownloadResponse(BaseModel):
     file_size: Optional[int] = None
     metadata: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
+    download_id: Optional[str] = None  # ID para tracking de progreso
 
 class AudioInfoResponse(BaseModel):
     """Respuesta de información de audio"""

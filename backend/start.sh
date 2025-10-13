@@ -8,9 +8,9 @@ echo "🐍 Using uv for Python dependency management"
 echo ""
 
 # Check if we're in the right directory
-if [ ! -f "main_api.py" ]; then
-    echo "❌ Error: main_api.py not found"
-    echo "   Please run this script from the backend-md directory"
+if [ ! -f "main.py" ]; then
+    echo "❌ Error: main.py not found"
+    echo "   Please run this script from the backend directory"
     exit 1
 fi
 
@@ -49,4 +49,4 @@ echo "🚀 Starting server with enhanced launcher..."
 echo ""
 
 # Use the improved server launcher
-uv run python run_server.py
+uv run python main.py
