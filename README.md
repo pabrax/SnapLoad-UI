@@ -999,7 +999,50 @@ Para contribuir al proyecto:
 
 ## 📄 Licencia
 
-Este proyecto está bajo la licencia especificada en el archivo `LICENSE`.
+Este proyecto está bajo la licencia **MIT** - Ver [LICENSE](LICENSE) para más detalles.
+
+---
+
+## ⚠️ Disclaimer Legal / Aviso Importante
+
+**ESTE SOFTWARE ES EXCLUSIVAMENTE PARA FINES EDUCATIVOS Y PERSONALES**
+
+### 📚 Propósito Educativo
+
+Este proyecto fue desarrollado como herramienta educativa para aprender sobre:
+- Desarrollo de aplicaciones web modernas con Next.js y TypeScript
+- Integración frontend-backend y manejo de APIs
+- Arquitectura de componentes React y hooks personalizados
+- Gestión de estado asíncrono y polling
+- Validación y sanitización de datos
+
+### 👤 Responsabilidad del Usuario
+
+- **El usuario final es el único responsable** del uso que haga de este software
+- Debes tener los **derechos legales necesarios** para descargar cualquier contenido
+- Es tu responsabilidad **cumplir con las leyes** de tu jurisdicción y los **Términos de Servicio** de las plataformas
+- Este software **NO debe utilizarse** para violar derechos de autor o distribuir contenido protegido sin autorización
+
+### 🚫 Limitación de Responsabilidad
+
+Los autores, mantenedores y contribuyentes de este proyecto:
+
+- **NO se hacen responsables** de cualquier uso indebido del software
+- **NO apoyan ni promueven** la piratería o descarga no autorizada de contenido
+- **NO asumen responsabilidad** por violaciones de Términos de Servicio de terceros
+- **NO garantizan** que el software cumpla con las leyes de todas las jurisdicciones
+- **NO proporcionan, alojan ni distribuyen** contenido protegido por derechos de autor
+
+### ⚖️ Cumplimiento Legal
+
+Antes de usar este software:
+
+1. ✅ Verifica que tienes derecho a descargar el contenido que deseas
+2. ✅ Lee y cumple los Términos de Servicio de YouTube, Spotify y otras plataformas
+3. ✅ Asegúrate de cumplir con las leyes de propiedad intelectual de tu país
+4. ✅ Respeta los derechos de autor y la propiedad intelectual de los creadores
+
+**⚠️ Al usar este software, aceptas toda la responsabilidad por su uso y te comprometes a cumplir con todas las leyes aplicables.**
 
 ---
 
