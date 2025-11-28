@@ -1,12 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
-
-const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:8000"
+import { backendUrl } from "@/src/lib/backend"
 
 export async function GET() {
   try {
     console.log("[API] Checking backend health...")
-
-    const response = await fetch(`${BACKEND_API_URL}/api/v1/health`, {
+    const response = await fetch(backendUrl('/health'), {
       cache: 'no-store'
     })
 

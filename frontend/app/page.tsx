@@ -10,12 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/src/components/ui/badge"
 import { useDownload } from "@/src/hooks/use-download"
 import { useDownloadProgress } from "@/src/hooks/use-download-progress"
-import { usePlaylistDownload } from "@/src/hooks/use-playlist-download"
 import { ProgressBar } from "@/src/components/features/progress-bar"
-import { MultiProgressBar } from "@/src/components/features/multi-progress-bar"
-import { PlaylistInfoComponent } from "@/src/components/features/playlist-info"
-import { PlaylistInfoWithDownloads } from "@/src/components/features/playlist-info-with-downloads"
 import type { AudioInfoResponse } from "@/src/types/api"
+import { isValidContentUrl } from "@/src/lib/validators"
+import VideoDownloader from "@/src/components/features/video-downloader"
 
 type DownloadStatus = "idle" | "loading" | "success" | "error" | "info-loading"
 
@@ -39,6 +37,7 @@ const QUALITY_OPTIONS = [
 ]
 
 export default function MusicDownloader() {
+  const [tab, setTab] = useState<'audio' | 'video'>('audio')
   const [url, setUrl] = useState("")
   const [quality, setQuality] = useState("192")
   const [status, setStatus] = useState<DownloadStatus>("idle")
@@ -57,27 +56,8 @@ export default function MusicDownloader() {
     cancelDownload,
     clearError: clearProgressError 
   } = useDownloadProgress()
-  
-  const {
-    playlistInfo,
-    isLoadingInfo: isLoadingPlaylistInfo,
-    isDownloading: isDownloadingPlaylist,
-    multiProgress,
-    downloadedFiles,
-    isLoadingFiles,
-    isCreatingZip,
-    zipFile,
-    error: playlistError,
-    getPlaylistInfo,
-    startPlaylistDownload,
-    cancelDownload: cancelPlaylistDownload,
-    clearError: clearPlaylistError,
-    refreshDownloadedFiles,
-    downloadFile: downloadSingleFile,
-    createZip,
-    downloadZip,
-    cleanupFiles
-  } = usePlaylistDownload()
+
+  // Playlist features removed — no longer provided by frontend
 
   // Verificar estado del backend al cargar
   useEffect(() => {
@@ -102,21 +82,16 @@ export default function MusicDownloader() {
     if (progressError) {
       clearProgressError()
     }
-    if (playlistError) {
-      clearPlaylistError()
-    }
     setAudioInfo(null)
-  }, [url, clearError, error, progressError, clearProgressError, playlistError, clearPlaylistError])
+  }, [url, clearError, error, progressError, clearProgressError])
 
+  // Use shared validators that match backend heuristics
   const validateUrl = (url: string): boolean => {
-    const supportedPlatforms = [
-      'youtube.com',
-      'music.youtube.com',
-      'open.spotify.com',
-      'spotify.com'  // Añadido soporte adicional para spotify.com
-    ]
-    
-    return supportedPlatforms.some(platform => url.toLowerCase().includes(platform))
+    try {
+      return isValidContentUrl(url)
+    } catch {
+      return false
+    }
   }
 
   const isPlaylistUrl = (url: string): boolean => {
@@ -138,16 +113,18 @@ export default function MusicDownloader() {
     
     // Detectar si es playlist y obtener información apropiada
     if (isPlaylistUrl(url)) {
-      const success = await getPlaylistInfo(url)
-      setStatus(success ? "idle" : "error")
+      // Playlist info endpoint removed; we don't fetch a rich playlist preview here.
+      // The download flow will enqueue a job and the frontend will poll status.
+      setStatus("idle")
+      return
+    }
+
+    const info = await getAudioInfo(url)
+    if (info && info.success) {
+      setAudioInfo(info)
+      setStatus("idle")
     } else {
-      const info = await getAudioInfo(url)
-      if (info && info.success) {
-        setAudioInfo(info)
-        setStatus("idle")
-      } else {
-        setStatus("error")
-      }
+      setStatus("error")
     }
   }
 
@@ -167,17 +144,75 @@ export default function MusicDownloader() {
     setStatus("loading")
     setDownloadResult(null)
 
-    // Detectar si es playlist y usar el método apropiado
-    if (isPlaylistUrl(url) || playlistInfo) {
-      // Descarga de playlist/album
-      const success = await startPlaylistDownload(url, quality)
-      if (success) {
-        setStatus("success")
-      } else {
-        setStatus("error")
+    // Detectar si es playlist y usar un flujo sencillo basado en job/status/files
+    if (isPlaylistUrl(url)) {
+      try {
+        setStatus("loading")
+
+        // Encolar el job (usar proxy)
+        const resp = await fetch('/api/download-with-progress', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, quality }),
+        })
+        if (!resp.ok) throw new Error('Error al encolar descarga')
+        const data = await resp.json()
+        const jobId = data.job_id || data.download_id
+        if (!jobId) throw new Error('No job_id returned')
+
+        // Poll for status until terminal state
+        const pollInterval = 2000
+        let finished = false
+        while (!finished) {
+          await new Promise((r) => setTimeout(r, pollInterval))
+          try {
+            const sres = await fetch(`/api/status/${encodeURIComponent(jobId)}`)
+            if (!sres.ok) continue
+            const sdata = await sres.json()
+            const st = (sdata.status || sdata.meta?.status || '').toLowerCase()
+            if (['success', 'failed', 'cancelled'].includes(st)) {
+              finished = true
+              if (st !== 'success') throw new Error(sdata.meta?.error || 'Job finalizado con error')
+            }
+          } catch (e) {
+            console.warn('Polling error', e)
+          }
+        }
+
+        // Obtener lista de ficheros y descargarlos secuencialmente
+        const fres = await fetch(`/api/files/${encodeURIComponent(jobId)}`)
+        if (!fres.ok) throw new Error('Error listando ficheros producidos')
+        const fdata = await fres.json()
+        const files = fdata.files || []
+        for (const f of files) {
+          try {
+            const filename = f.name
+            const fileResp = await fetch(`/api/files/${encodeURIComponent(jobId)}/download/${encodeURIComponent(filename)}`)
+            if (!fileResp.ok) {
+              console.error('Error downloading produced file:', fileResp.status)
+              continue
+            }
+            const blob = await fileResp.blob()
+            const downloadUrl = window.URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = downloadUrl
+            a.download = filename
+            document.body.appendChild(a)
+            a.click()
+            window.URL.revokeObjectURL(downloadUrl)
+            document.body.removeChild(a)
+          } catch (e) {
+            console.error('Error downloading file', e)
+          }
+        }
+
+        setStatus('success')
+      } catch (err) {
+        console.error('Playlist download error', err)
+        setStatus('error')
       }
     } else {
-      // Descarga individual
+      // Descarga individual — delegar al hook de progreso
       const success = await startProgressDownload(url, quality)
       if (success) {
         setStatus("success")
@@ -208,7 +243,7 @@ export default function MusicDownloader() {
         style={{ animationDelay: "2s" }}
       />
 
-      <div className="relative z-10 w-full max-w-4xl px-4 md:px-6">
+  <div className="relative z-10 w-full max-w-4xl px-4 md:px-6">
         {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4 float-animation">
@@ -236,11 +271,27 @@ export default function MusicDownloader() {
           </div>
         </div>
 
+        {/* Tabs: Audio / Video */}
+        <div className="mb-4 flex items-center justify-center gap-3">
+          <button
+            type="button"
+            onClick={() => setTab('audio')}
+            className={`px-4 py-2 rounded-full font-semibold ${tab === 'audio' ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white' : 'bg-slate-800 text-muted-foreground'}`}>
+            Audio
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab('video')}
+            className={`px-4 py-2 rounded-full font-semibold ${tab === 'video' ? 'bg-gradient-to-r from-teal-500 to-cyan-500 text-white' : 'bg-slate-800 text-muted-foreground'}`}>
+            Video
+          </button>
+        </div>
+
         <Card className="relative p-6 md:p-8 bg-slate-900/80 backdrop-blur-xl border-2 border-slate-700/50 shadow-2xl shadow-slate-950/50">
           <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-teal-500/10 blur-xl" />
-
-          <div className="relative">
-            <form onSubmit={handleDownload} className="space-y-5">
+          {tab === 'audio' ? (
+            <div className="relative">
+              <form onSubmit={handleDownload} className="space-y-5">
               <div className="space-y-2">
                 <label htmlFor="url" className="text-sm font-bold text-foreground uppercase tracking-wide">
                   URL del Audio
@@ -324,21 +375,19 @@ export default function MusicDownloader() {
 
               <Button
                 type="submit"
-                disabled={isLoading || isProgressLoading || isDownloadingPlaylist || isLoadingPlaylistInfo || backendStatus !== "connected"}
+                disabled={isLoading || isProgressLoading || backendStatus !== "connected"}
                 className="w-full h-12 text-base font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 hover:opacity-90 transition-opacity shadow-lg shadow-blue-500/30"
                 size="lg"
               >
-                {(isLoading || isProgressLoading || isDownloadingPlaylist || isLoadingPlaylistInfo) ? (
+                {(isLoading || isProgressLoading) ? (
                   <>
                     <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                    {isDownloadingPlaylist ? "Descargando playlist..." : 
-                     isLoadingPlaylistInfo ? "Obteniendo información..." :
-                     isProgressLoading ? progressMessage || "Procesando descarga..." : "Procesando descarga..."}
+                    {isProgressLoading ? progressMessage || "Procesando descarga..." : "Procesando descarga..."}
                   </>
                 ) : (
                   <>
                     <Download className="w-5 h-5 mr-2" />
-                    {playlistInfo ? `Descargar ${playlistInfo.type} (${playlistInfo.total_tracks} tracks)` : "Descargar Ahora"}
+                    Descargar Ahora
                   </>
                 )}
               </Button>
@@ -354,175 +403,67 @@ export default function MusicDownloader() {
                   Cancelar Descarga
                 </Button>
               )}
-            </form>
+              </form>
 
-            {/* Progress Bar - Individual */}
-            {isProgressLoading && (
-              <div className="mt-4 p-4 bg-muted/20 border-2 border-muted rounded-lg backdrop-blur-sm">
-                <ProgressBar
-                  value={progress}
-                  status={progressStatus}
-                  message={progressMessage}
-                  showPercentage={true}
-                  animated={true}
-                  className="w-full"
-                />
-              </div>
-            )}
-
-            {/* Playlist Info */}
-            {playlistInfo && (
-              <div className="mt-5">
-                <PlaylistInfoWithDownloads
-                  playlistInfo={playlistInfo}
-                  downloadedFiles={downloadedFiles}
-                  isLoadingFiles={isLoadingFiles}
-                  onDownloadFile={downloadSingleFile}
-                  onRefreshFiles={refreshDownloadedFiles}
-                  
-                  // ZIP props
-                  isCreatingZip={isCreatingZip}
-                  zipFile={zipFile}
-                  onCreateZip={createZip}
-                  onDownloadZip={downloadZip}
-                  onCleanupFiles={cleanupFiles}
-                  
-                  showTrackList={true}
-                  maxVisibleTracks={8}
-                  showZipControls={!!(multiProgress && multiProgress.overall_status === "completed")}
-                />
-              </div>
-            )}
-
-            {/* Multi Progress Bar - Playlist */}
-            {isDownloadingPlaylist && multiProgress && (
-              <div className="mt-4 p-4 bg-muted/20 border-2 border-muted rounded-lg backdrop-blur-sm">
-                <MultiProgressBar
-                  multiProgress={multiProgress}
-                  showFileList={true}
-                  maxVisibleFiles={6}
-                />
-              </div>
-            )}
-
-            {/* Botón de cancelar durante descarga de playlist */}
-            {isDownloadingPlaylist && (
-              <div className="mt-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={cancelPlaylistDownload}
-                  className="w-full h-10 text-sm font-medium border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
-                >
-                  Cancelar Descarga de Playlist
-                </Button>
-              </div>
-            )}
-
-            {/* ZIP Controls - Show when playlist download is completed */}
-            {playlistInfo && multiProgress && multiProgress.overall_status === "completed" && (
-              <div className="mt-8 p-5 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-teal-500/10 border-2 border-blue-500/20 rounded-lg backdrop-blur-sm">
-                <h3 className="text-lg font-bold text-blue-400 mb-4 flex items-center gap-2">
-                  <Archive className="w-5 h-5" />
-                  Descarga Completada
-                </h3>
-                
-                <div className="space-y-3">
-                  <p className="text-sm text-gray-300">
-                    ¡Playlist descargada exitosamente! Puedes descargar los archivos como un ZIP comprimido.
-                  </p>
-                  
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    {!zipFile ? (
-                      <Button
-                        onClick={createZip}
-                        disabled={isCreatingZip}
-                        className="h-11 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium"
-                      >
-                        {isCreatingZip ? (
-                          <>
-                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            Creando ZIP...
-                          </>
-                        ) : (
-                          <>
-                            <Archive className="w-4 h-4 mr-2" />
-                            Crear ZIP
-                          </>
-                        )}
-                      </Button>
-                    ) : (
-                      <>
-                        <Button
-                          onClick={downloadZip}
-                          className="h-11 bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white font-medium"
-                        >
-                          <Download className="w-4 h-4 mr-2" />
-                          Descargar ZIP
-                        </Button>
-                        
-                        <Button
-                          onClick={() => cleanupFiles(true)}
-                          variant="outline"
-                          className="h-11 border-orange-500/20 text-orange-400 hover:bg-orange-500/10"
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Limpiar Archivos
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                  
-                  {zipFile && (
-                    <p className="text-xs text-green-400 flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3" />
-                      ZIP creado: {zipFile.split('/').pop()}
-                    </p>
-                  )}
+              {/* Progress Bar - Individual */}
+              {isProgressLoading && (
+                <div className="mt-4 p-4 bg-muted/20 border-2 border-muted rounded-lg backdrop-blur-sm">
+                  <ProgressBar
+                    value={progress}
+                    status={progressStatus}
+                    message={progressMessage}
+                    showPercentage={true}
+                    animated={true}
+                    className="w-full"
+                  />
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Success Message */}
-            {status === "success" && downloadResult && (
-              <div className="mt-4 p-4 bg-primary/20 border-2 border-primary rounded-lg backdrop-blur-sm">
-                <div className="flex items-start gap-3">
-                  <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
-                  <div className="flex-1">
-                    <p className="text-sm font-bold text-primary mb-1">¡Descarga exitosa!</p>
-                    <p className="text-xs text-primary/80 mb-2">El archivo se ha descargado correctamente</p>
-                    <div className="flex flex-wrap gap-1">
-                      {downloadResult.metadata?.quality && (
-                        <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
-                          {downloadResult.metadata.quality} kbps
-                        </Badge>
-                      )}
-                      {downloadResult.metadata?.platform && (
-                        <Badge variant="secondary" className="bg-secondary/10 text-secondary border-secondary/20 text-xs">
-                          {downloadResult.metadata.platform}
-                        </Badge>
-                      )}
+              {/* Success Message */}
+              {status === "success" && downloadResult && (
+                <div className="mt-4 p-4 bg-primary/20 border-2 border-primary rounded-lg backdrop-blur-sm">
+                  <div className="flex items-start gap-3">
+                    <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-primary mb-1">¡Descarga exitosa!</p>
+                      <p className="text-xs text-primary/80 mb-2">El archivo se ha descargado correctamente</p>
+                      <div className="flex flex-wrap gap-1">
+                        {downloadResult.metadata?.quality && (
+                          <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
+                            {downloadResult.metadata.quality} kbps
+                          </Badge>
+                        )}
+                        {downloadResult.metadata?.platform && (
+                          <Badge variant="secondary" className="bg-secondary/10 text-secondary border-secondary/20 text-xs">
+                            {downloadResult.metadata.platform}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Error Message */}
-            {(status === "error" || error || progressError || playlistError) && (
-              <div className="mt-4 p-4 bg-destructive/20 border-2 border-destructive rounded-lg flex items-start gap-3 backdrop-blur-sm">
-                <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-bold text-destructive">Error</p>
-                  <p className="text-xs text-destructive/80 mt-1">
-                    {playlistError || progressError || error || 
-                     (!validateUrl(url) && url ? "URL no soportada. Usa: open.spotify.com/track/..., youtube.com/watch?v=..., o music.youtube.com/watch?v=..." : 
-                      "No se pudo procesar la solicitud. Verifica la URL e intenta nuevamente.")}
-                  </p>
+              {/* Error Message */}
+              {(status === "error" || error || progressError) && (
+                <div className="mt-4 p-4 bg-destructive/20 border-2 border-destructive rounded-lg flex items-start gap-3 backdrop-blur-sm">
+                  <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-bold text-destructive">Error</p>
+                    <p className="text-xs text-destructive/80 mt-1">
+                      {progressError || error || 
+                       (!validateUrl(url) && url ? "URL no soportada. Usa: open.spotify.com/track/..., youtube.com/watch?v=..., o music.youtube.com/watch?v=..." : 
+                        "No se pudo procesar la solicitud. Verifica la URL e intenta nuevamente.")}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          ) : (
+            <div className="relative">
+              <VideoDownloader noCard />
+            </div>
+          )}
         </Card>
 
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">

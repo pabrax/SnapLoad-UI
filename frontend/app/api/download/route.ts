@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-
-const BACKEND_API_URL = process.env.BACKEND_API_URL || "http://localhost:8000"
+import { backendUrl } from "@/src/lib/backend"
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,102 +9,44 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "URL es requerida" }, { status: 400 })
     }
 
-    console.log("[API] Downloading from URL:", url, "with quality:", quality)
+    console.log("[API] Proxying download request to backend for URL:", url)
 
-    // Primero llamamos al endpoint de descarga del backend con timeout personalizado
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 300000) // 5 minutos timeout
+    const timeoutId = setTimeout(() => controller.abort(), 120000) // 2 minutos timeout
 
     try {
-      const downloadResponse = await fetch(`${BACKEND_API_URL}/api/v1/download`, {
+      const downloadResponse = await fetch(backendUrl("/download"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          url,
-          quality,
-          output_format
-        }),
+        body: JSON.stringify({ url, quality, output_format }),
         signal: controller.signal,
       })
 
       clearTimeout(timeoutId)
 
+      const result = await downloadResponse.json().catch(() => ({}))
+
       if (!downloadResponse.ok) {
-        const errorData = await downloadResponse.json()
-        console.error("[API] Backend error:", errorData)
-        
-        // Manejo específico de errores
-        if (downloadResponse.status === 408) {
-          return NextResponse.json(
-            { error: "La descarga está tomando demasiado tiempo. Intenta con un video más corto o verifica tu conexión." },
-            { status: 408 }
-          )
-        }
-        
-        return NextResponse.json(
-          { error: errorData.detail || errorData.error || "Error al procesar la descarga en el backend" },
-          { status: downloadResponse.status }
-        )
+        console.error("[API] Backend error:", result)
+        return NextResponse.json({ error: result.detail || result.error || "Error al iniciar la descarga" }, { status: downloadResponse.status })
       }
 
-      const downloadResult = await downloadResponse.json()
-      
-      if (!downloadResult.success) {
-        return NextResponse.json(
-          { error: downloadResult.error || "Error en la descarga" },
-          { status: 400 }
-        )
-      }
-
-      // Extraer el nombre del archivo del path devuelto por el backend
-      const filePath = downloadResult.file_path
-      const fileName = filePath.split('/').pop() || "audio.mp3"
-      
-      console.log("[API] File downloaded successfully:", fileName)
-      
-      // Ahora descargamos el archivo usando el endpoint de descarga de archivo
-      const fileResponse = await fetch(`${BACKEND_API_URL}/api/v1/download-file/${encodeURIComponent(fileName)}`)
-
-      if (!fileResponse.ok) {
-        console.error("[API] Error downloading file:", fileName)
-        return NextResponse.json(
-          { error: "Error al descargar el archivo procesado" },
-          { status: 500 }
-        )
-      }
-
-      const fileBuffer = await fileResponse.arrayBuffer()
-      const contentType = fileResponse.headers.get("content-type") || "audio/mpeg"
-
-      return new NextResponse(fileBuffer, {
-        headers: {
-          "Content-Type": contentType,
-          "Content-Disposition": `attachment; filename="${fileName}"`,
-          "Content-Length": fileBuffer.byteLength.toString(),
-        },
-      })
+      // Backend returns 202 with job_id and message; proxy it to the client
+      return NextResponse.json(result, { status: downloadResponse.status })
 
     } catch (error: any) {
       clearTimeout(timeoutId)
-      
       if (error.name === 'AbortError') {
         console.error("[API] Request timeout")
-        return NextResponse.json(
-          { error: "La descarga está tomando demasiado tiempo. Intenta con un video más corto." },
-          { status: 408 }
-        )
+        return NextResponse.json({ error: "Timeout al iniciar la descarga" }, { status: 408 })
       }
-      
       throw error
     }
 
   } catch (error) {
-    console.error("[API] Download error:", error)
-    return NextResponse.json(
-      { error: "Error interno del servidor al procesar la descarga" },
-      { status: 500 }
-    )
+    console.error("[API] Download proxy error:", error)
+    return NextResponse.json({ error: "Error interno del servidor al procesar la descarga" }, { status: 500 })
   }
 }

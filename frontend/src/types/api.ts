@@ -1,27 +1,91 @@
-// Types for backend API integration
+// Types for backend API integration — aligned with backend FastAPI responses.
 
+// --- Requests ---
 export interface DownloadRequest {
   url: string
+  // optional audio quality (e.g. "320k" or yt-dlp quality like "0")
   quality?: string
-  output_format?: string
 }
 
-export interface DownloadResponse {
-  success: boolean
-  message?: string
-  file_path?: string
+export interface VideoDownloadRequest {
+  url: string
+  // optional video container/format (e.g. "mp4", "webm")
+  format?: string
+}
+
+// --- Responses ---
+// Response returned when a download job is enqueued (POST /download)
+export interface DownloadEnqueueResponse {
+  message: string
+  job_id: string
+  url: string
+  source?: string
+}
+
+// Lightweight status response (GET /status/{job_id})
+export type JobStatus = "queued" | "running" | "completed" | "failed" | "cancelled" | "unknown"
+
+export interface StatusResponse {
+  job_id: string
+  status: JobStatus
+  // backend may include `meta` when final meta exists
+  meta?: Record<string, any>
+  // or `log_path` when running
+  log_path?: string
+}
+
+// File list item returned by GET /files/{job_id}
+export interface FileListItem {
+  name: string
+  size_bytes?: number
+  download_url?: string
+}
+
+export interface FilesListResponse {
+  job_id: string
+  files: FileListItem[]
+}
+
+// Response returned when requesting the archive endpoint (GET /files/{job_id}/archive)
+export interface ZipDownloadResponse {
+  success?: boolean
+  // URL to download the ZIP (frontend uses proxy /api/files/{jobId}/archive)
+  zip_url?: string
+  download_url?: string
   file_size?: number
-  metadata?: {
-    title?: string
-    artist?: string
-    duration?: number
-    quality?: string
-    platform?: string
-  }
   error?: string
-  download_id?: string  // ID para tracking de progreso
 }
 
+// Archive/download endpoints return binary FileResponses and are not modeled here.
+
+// --- Legacy / compatibility types ---
+// Some UI code previously used playlist/multi-progress shapes. Keep small, optional
+// types here for backward compatibility but prefer the job/status/files flow above.
+
+export interface FileInfo {
+  name: string
+  size?: number
+  path?: string
+}
+
+export interface DownloadedFile extends FileInfo {
+  folder?: string
+}
+
+// Deprecated: multi-file progress structures (prefer JobStatus + meta/files endpoints)
+export interface MultiProgressData {
+  // minimal shape kept for compatibility
+  download_id?: string
+  total_files?: number
+  completed_files?: number
+  failed_files?: number
+  overall_progress?: number
+  overall_status?: string
+  files_info?: FileListItem[]
+  error?: string
+}
+
+// Health / helper responses (unchanged semantics)
 export interface HealthCheckResponse {
   status: string
   spotify_auth: boolean
@@ -41,108 +105,11 @@ export interface QualitiesResponse {
 export interface AudioInfoResponse {
   success: boolean
   metadata?: {
-    title: string
-    artist: string
-    duration: number
+    title?: string
+    artist?: string
+    duration?: number
     thumbnail?: string
-    platform: string
+    platform?: string
   }
-  error?: string
-}
-
-// Tipos para el sistema de progreso
-export interface ProgressData {
-  progress: number
-  status: string
-  message: string
-  error?: string
-  filename?: string
-  timestamp?: number
-}
-
-export interface DownloadWithProgressResponse {
-  download_id: string
-  message: string
-  progress_url: string
-}
-
-export interface ProgressStreamEvent {
-  data: ProgressData
-}
-
-// Tipos para el sistema de progreso multi-archivo
-export interface PlaylistInfo {
-  type: "track" | "album" | "playlist"
-  platform: string
-  total_tracks: number
-  tracks: string[]
-  url: string
-  title: string
-  uploader?: string
-  limited: boolean
-}
-
-export interface PlaylistInfoResponse {
-  success: boolean
-  info: PlaylistInfo
-}
-
-export interface FileInfo {
-  index: number
-  name: string
-  status: "pending" | "downloading" | "completed" | "failed"
-  progress: number
-  error?: string
-  message?: string
-}
-
-export interface MultiProgressData {
-  download_id: string
-  total_files: number
-  completed_files: number
-  failed_files: number
-  current_file_index: number
-  current_file_progress: number
-  current_file_name: string
-  current_file_status: string
-  overall_progress: number
-  overall_status: string
-  message: string
-  error?: string
-  files_info: FileInfo[]
-  timestamp: number
-}
-
-export interface PlaylistDownloadResponse {
-  download_id: string
-  message: string
-  progress_url: string
-  total_files: number
-  playlist_info: PlaylistInfo
-  zip_file?: string  // Path to ZIP file when playlist is complete
-}
-
-// Tipos para archivos descargados
-export interface DownloadedFile {
-  name: string
-  size: number
-  path: string
-  folder?: string
-}
-
-export interface ListFilesResponse {
-  success: boolean
-  files: DownloadedFile[]
-  count: number
-  folder?: string
-  error?: string
-}
-
-// Tipos para descarga de ZIP
-export interface ZipDownloadResponse {
-  success: boolean
-  zip_file?: string
-  download_url?: string
-  file_size?: number
   error?: string
 }
