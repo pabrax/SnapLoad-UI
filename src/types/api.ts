@@ -113,3 +113,35 @@ export interface AudioInfoResponse {
   }
   error?: string
 }
+
+// UI-specific types
+export type DownloadStatus = "idle" | "loading" | "success" | "error" | "info-loading"
+
+export interface DownloadResult {
+  fileName: string
+  fileSize?: number
+  metadata?: {
+    title?: string
+    artist?: string
+    duration?: number
+    quality?: string
+    platform?: string
+  }
+}
+
+export interface ProducedFile {
+  name: string
+  size_bytes?: number
+}
+
+export type BackendStatus = "unknown" | "connected" | "disconnected"
+
+export type TabType = "audio" | "video"
+
+// Video-specific types
+export type VideoJobStatus = "idle" | "loading" | "success" | "error" | "polling"
+
+export interface VideoFile {
+  name: string
+  size?: number
+}

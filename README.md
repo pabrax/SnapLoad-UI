@@ -1,18 +1,19 @@
-# LocalSongs
+# SnapLoad
 
-> **Un descargador de música moderno y completo con soporte para múltiples plataformas**
+> **Un descargador moderno y rápido de audio y video con soporte para múltiples plataformas**
 
-LocalSongs es una aplicación web full-stack que permite descargar música de alta calidad desde YouTube, YouTube Music y Spotify. Construida con tecnologías modernas, ofrece una experiencia de usuario fluida con progreso en tiempo real y organización automática de archivos.
+SnapLoad es una aplicación web full-stack que permite descargar audio y video de alta calidad desde YouTube, YouTube Music y Spotify. Construida con tecnologías modernas, ofrece una experiencia de usuario fluida con progreso en tiempo real y organización automática de archivos.
 
 ## Vista Previa de la Aplicación
 
-![LocalSongs App Screenshot](./Docs/images/localsongs.jpeg)
+![SnapLoad App Screenshot](./Docs/images/snapload.jpeg)
 
 ## Características Principales
 
 ### **Funcionalidades Core**
 - **Descarga Multi-plataforma**: YouTube, YouTube Music, Spotify y URLs internacionales
-- **Calidad de Audio Variable**: 96kbps hasta 320kbps según preferencias
+- **Audio de Alta Calidad**: 96kbps hasta 320kbps según preferencias
+- **Video en Múltiples Formatos**: MP4, WebM con calidad optimizada
 - **Progreso en Tiempo Real**: Seguimiento visual de cada descarga con SSE
 - **Albums y Playlists Completos**: Descarga automática de colecciones enteras
 - **Organización Inteligente**: Carpetas automáticas por album/playlist/artista
@@ -36,8 +37,8 @@ LocalSongs es una aplicación web full-stack que permite descargar música de al
 
 #### 1. Clonar el repositorio
 ```bash
-git clone https://github.com/pabrax/LocalSongs.git
-cd LocalSongs
+git clone https://github.com/pabrax/SnapLoad.git
+cd SnapLoad
 ```
 
 #### 2. Configurar Backend
@@ -73,7 +74,7 @@ pnpm dev
 ## Características Avanzadas
 
 ### **Descarga de Colecciones Completas**
-LocalSongs puede descargar albums y playlists completos con organización automática:
+SnapLoad puede descargar albums y playlists completos con organización automática:
 
 ```
 downloads/
@@ -112,7 +113,7 @@ downloads/
 ## Arquitectura del Proyecto
 
 ```
-LocalSongs/
+SnapLoad/
 ├── backend/                  # Backend FastAPI
 │   ├── src/
 │   │   ├── api/                 # Endpoints de API
@@ -442,8 +443,8 @@ Este proyecto está licenciado bajo los términos especificados en [LICENSE](LIC
 ## Enlaces Útiles
 
 - **Documentación API**: [http://localhost:8000/docs](http://localhost:8000/docs) (cuando el servidor esté ejecutándose)
-- **Reportar bugs**: [GitHub Issues](https://github.com/pabrax/LocalSongs/issues)
-- **Discusiones**: [GitHub Discussions](https://github.com/pabrax/LocalSongs/discussions)
+- **Reportar bugs**: [GitHub Issues](https://github.com/pabrax/SnapLoad/issues)
+- **Discusiones**: [GitHub Discussions](https://github.com/pabrax/SnapLoad/discussions)
 - **spotdl Documentation**: [https://github.com/spotDL/spotify-downloader](https://github.com/spotDL/spotify-downloader)
 
 ## Agradecimientos
