@@ -90,14 +90,25 @@ export function useDownloadProgress(): UseDownloadProgressResult {
 
       const pollInterval = 4000
       let stopped = false
+      let consecutiveErrors = 0
+      const MAX_CONSECUTIVE_ERRORS = 3
 
       const poll = async () => {
         try {
           const sres = await fetch(`/api/status/${encodeURIComponent(jobId)}`)
           if (!sres.ok) {
-            // If 404 or other, keep polling a few times then bail
-            console.warn("Status fetch returned:", sres.status)
+            consecutiveErrors++
+            console.warn("Status fetch returned:", sres.status, `(${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS})`)
+            
+            if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+              stopped = true
+              setIsLoading(false)
+              setStatus("error")
+              setError("No se puede conectar con el backend. Verifica que esté ejecutándose.")
+              return
+            }
           } else {
+            consecutiveErrors = 0 // Reset counter on success
             const sdata = await sres.json()
             const st = (sdata.status || sdata.meta?.status || '').toLowerCase()
             setStatus(st || 'unknown')
@@ -164,7 +175,16 @@ export function useDownloadProgress(): UseDownloadProgressResult {
             }
           }
         } catch (e) {
-          console.error('Polling error', e)
+          consecutiveErrors++
+          console.error('Polling error', e, `(${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS})`)
+          
+          if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
+            stopped = true
+            setIsLoading(false)
+            setStatus("error")
+            setError("No se puede conectar con el backend. Verifica que esté ejecutándose.")
+            return
+          }
         }
 
         if (!stopped) {
