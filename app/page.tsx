@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Card } from "@/src/components/ui/card"
 import { AudioHeader } from "@/src/components/features/shared/AudioHeader"
-import { BackendStatusBadge } from "@/src/components/features/shared/BackendStatus"
 import { TabSelector } from "@/src/components/features/shared/TabSelector"
 import { FeatureBadges } from "@/src/components/features/shared/FeatureBadges"
 import { BackgroundEffects } from "@/src/components/features/shared/BackgroundEffects"
@@ -22,10 +21,6 @@ export default function MusicDownloader() {
 
       <div className="relative z-10 w-full max-w-4xl px-4 md:px-6">
         <AudioHeader />
-        
-        <div className="mb-6">
-          <BackendStatusBadge status={backendStatus} />
-        </div>
 
         <TabSelector activeTab={tab} onTabChange={setTab} />
 
@@ -40,7 +35,7 @@ export default function MusicDownloader() {
           )}
         </Card>
 
-        <FeatureBadges />
+        <FeatureBadges backendStatus={backendStatus} />
       </div>
     </main>
   )
