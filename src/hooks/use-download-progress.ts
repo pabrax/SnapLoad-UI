@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
+import { useToast } from "@/src/hooks/use-toast"
 import type { DownloadRequest } from "@/src/types/api"
 
 export interface UseDownloadProgressResult {
@@ -28,12 +29,53 @@ export function useDownloadProgress(): UseDownloadProgressResult {
   const [fileDownloaded, setFileDownloaded] = useState(false)
   
   const abortControllerRef = useRef<AbortController | null>(null)
+  const pollingStoppedRef = useRef(false)
+  const { toast } = useToast()
 
   const clearError = useCallback(() => {
     setError(null)
   }, [])
 
-  const cancelDownload = useCallback(() => {
+  const cancelDownload = useCallback(async () => {
+    // Detener polling inmediatamente
+    pollingStoppedRef.current = true
+
+    // Si hay un downloadId, cancelar en el backend
+    if (downloadId) {
+      try {
+        const response = await fetch(`/api/cancel/${encodeURIComponent(downloadId)}`, {
+          method: "POST",
+        })
+        
+        if (response.ok) {
+          console.log("Job cancelado en el backend:", downloadId)
+          toast({
+            title: "Descarga cancelada",
+            description: "La descarga ha sido cancelada exitosamente.",
+          })
+        } else {
+          console.warn("No se pudo cancelar en el backend:", await response.text())
+          toast({
+            title: "Descarga detenida",
+            description: "Se detuvo el proceso en el cliente, pero puede continuar en el servidor.",
+            variant: "destructive",
+          })
+        }
+      } catch (error) {
+        console.error("Error al cancelar en el backend:", error)
+        toast({
+          title: "Descarga detenida",
+          description: "Se detuvo el proceso localmente.",
+          variant: "destructive",
+        })
+      }
+    } else {
+      toast({
+        title: "Descarga cancelada",
+        description: "La descarga ha sido detenida.",
+      })
+    }
+
     // Cancelar request si existe
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
@@ -46,7 +88,7 @@ export function useDownloadProgress(): UseDownloadProgressResult {
     setStatus("cancelled")
     setMessage("Descarga cancelada")
     setDownloadId(null)
-  }, [])
+  }, [downloadId, toast])
 
   const startDownload = useCallback(async (url: string, quality = "192"): Promise<boolean> => {
     try {
@@ -55,6 +97,7 @@ export function useDownloadProgress(): UseDownloadProgressResult {
       setProgress(0)
       setStatus("starting")
       setMessage("Iniciando descarga...")
+      pollingStoppedRef.current = false // Reset polling flag
 
       // Crear AbortController para cancelación
       abortControllerRef.current = new AbortController()
@@ -94,6 +137,12 @@ export function useDownloadProgress(): UseDownloadProgressResult {
       const MAX_CONSECUTIVE_ERRORS = 3
 
       const poll = async () => {
+        // Check if polling should stop
+        if (pollingStoppedRef.current) {
+          console.log("Polling detenido por cancelación")
+          return
+        }
+
         try {
           const sres = await fetch(`/api/status/${encodeURIComponent(jobId)}`)
           if (!sres.ok) {
@@ -187,7 +236,7 @@ export function useDownloadProgress(): UseDownloadProgressResult {
           }
         }
 
-        if (!stopped) {
+        if (!stopped && !pollingStoppedRef.current) {
           setTimeout(poll, pollInterval)
         }
       }

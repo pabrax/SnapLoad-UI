@@ -31,6 +31,7 @@ export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormPr
     jobId,
     errorMsg,
     handleVideoDownload,
+    cancelVideoDownload,
     resetVideoState,
   } = useVideoDownload()
 
@@ -142,6 +143,18 @@ export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormPr
             </>
           )}
         </Button>
+
+        {/* Botón de cancelar durante descarga */}
+        {isDownloading && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={cancelVideoDownload}
+            className="w-full h-10 text-sm font-medium border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+          >
+            Cancelar Descarga
+          </Button>
+        )}
       </form>
 
       {/* Progress */}
