@@ -3,10 +3,10 @@ import { backendUrl } from "@/src/lib/backend"
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ jobId: string }> }
+  { params }: { params: { jobId: string } }
 ) {
   try {
-    const { jobId } = await params
+    const { jobId } = params
 
     if (!jobId) {
       return NextResponse.json({ error: "Job ID es requerido" }, { status: 400 })
