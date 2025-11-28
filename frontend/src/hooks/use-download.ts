@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback } from "react"
-import type { DownloadRequest, DownloadResponse, AudioInfoResponse } from "@/src/types/api"
+import type { DownloadRequest, AudioInfoResponse } from "@/src/types/api"
 
 export interface UseDownloadResult {
   isLoading: boolean
@@ -45,7 +45,6 @@ export function useDownload(): UseDownloadResult {
       const downloadRequest: DownloadRequest = {
         url,
         quality,
-        output_format: "mp3"
       }
 
       const response = await fetch("/api/download", {

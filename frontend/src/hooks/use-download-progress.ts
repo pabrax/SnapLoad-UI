@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useRef, useEffect } from "react"
-import type { DownloadRequest, DownloadWithProgressResponse, ProgressData } from "@/src/types/api"
+import type { DownloadRequest } from "@/src/types/api"
 
 export interface UseDownloadProgressResult {
   isLoading: boolean
@@ -23,7 +23,6 @@ export function useDownloadProgress(): UseDownloadProgressResult {
   const [error, setError] = useState<string | null>(null)
   const [downloadId, setDownloadId] = useState<string | null>(null)
   
-  const eventSourceRef = useRef<EventSource | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
   const clearError = useCallback(() => {
@@ -31,18 +30,12 @@ export function useDownloadProgress(): UseDownloadProgressResult {
   }, [])
 
   const cancelDownload = useCallback(() => {
-    // Cerrar EventSource si existe
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close()
-      eventSourceRef.current = null
-    }
-    
     // Cancelar request si existe
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
       abortControllerRef.current = null
     }
-    
+
     // Limpiar estado
     setIsLoading(false)
     setProgress(0)
@@ -65,10 +58,9 @@ export function useDownloadProgress(): UseDownloadProgressResult {
       const downloadRequest: DownloadRequest = {
         url,
         quality,
-        output_format: "mp3"
       }
 
-      // Iniciar descarga con progreso
+      // Iniciar descarga (backend encola job y devuelve job_id)
       const response = await fetch("/api/download-with-progress", {
         method: "POST",
         headers: {
@@ -83,75 +75,85 @@ export function useDownloadProgress(): UseDownloadProgressResult {
         throw new Error(errorData.error || "Error al iniciar la descarga")
       }
 
-      const downloadResponse: DownloadWithProgressResponse = await response.json()
-      setDownloadId(downloadResponse.download_id)
-      setMessage(downloadResponse.message)
+      const downloadResponse = await response.json()
+      const jobId = downloadResponse.job_id || downloadResponse.download_id || null
+      if (!jobId) throw new Error('No job_id returned from backend')
+      setDownloadId(jobId)
+      setMessage(downloadResponse.message || 'Descarga encolada')
 
-      // Conectar a Server-Sent Events para progreso
-      const eventSource = new EventSource(`/api/progress-stream/${downloadResponse.download_id}`)
-      eventSourceRef.current = eventSource
+      // Poll backend status periodically via server proxy (/api/status/{jobId})
+      setStatus("queued")
 
-      eventSource.onmessage = (event) => {
+      const pollInterval = 2000
+      let stopped = false
+
+      const poll = async () => {
         try {
-          const progressData: ProgressData = JSON.parse(event.data)
-          
-          setProgress(progressData.progress)
-          setStatus(progressData.status)
-          setMessage(progressData.message)
-          
-          if (progressData.error) {
-            setError(progressData.error)
-          }
-          
-          // Si la descarga está completa o falló, cerrar conexión
-          if (progressData.status === 'completed' || 
-              progressData.status === 'success' || 
-              progressData.status === 'error' || 
-              progressData.status === 'failed' ||
-              progressData.status === 'stream_ended') {
-            eventSource.close()
-            eventSourceRef.current = null
-            setIsLoading(false)
-            
-            // Si es exitoso, descargar el archivo
-            if (progressData.status === 'completed' || progressData.status === 'success') {
-              // Trigger file download usando el nombre real del archivo
-              setTimeout(async () => {
+          const sres = await fetch(`/api/status/${encodeURIComponent(jobId)}`)
+          if (!sres.ok) {
+            // If 404 or other, keep polling a few times then bail
+            console.warn("Status fetch returned:", sres.status)
+          } else {
+            const sdata = await sres.json()
+            const st = (sdata.status || sdata.meta?.status || '').toLowerCase()
+            setStatus(st || 'unknown')
+            // Optionally set progress if backend provides it in meta
+            if (sdata.meta && typeof sdata.meta === 'object') {
+              const progressVal = (sdata.meta.progress && Number(sdata.meta.progress)) || undefined
+              if (typeof progressVal === 'number') setProgress(progressVal)
+            }
+
+            // Terminal states from backend: success, failed, cancelled
+            if (['success', 'failed', 'cancelled'].includes(st)) {
+              stopped = true
+              setIsLoading(false)
+
+              if (st === 'success') {
+                // Get produced files and trigger download of first file (if any)
                 try {
-                  const filename = progressData.filename || `audio_${quality}kbps.mp3`
-                  const fileResponse = await fetch(`/api/download-file/${encodeURIComponent(filename)}`)
-                  if (fileResponse.ok) {
-                    const blob = await fileResponse.blob()
-                    const downloadUrl = window.URL.createObjectURL(blob)
-                    const a = document.createElement("a")
-                    a.href = downloadUrl
-                    a.download = filename
-                    document.body.appendChild(a)
-                    a.click()
-                    window.URL.revokeObjectURL(downloadUrl)
-                    document.body.removeChild(a)
-                  } else {
-                    console.error("Error downloading file:", fileResponse.status)
+                  const fres = await fetch(`/api/files/${encodeURIComponent(jobId)}`)
+                  if (fres.ok) {
+                    const fdata = await fres.json()
+                    const files = fdata.files || []
+                    if (files.length > 0) {
+                      const filename = files[0].name
+                      // Stream download via proxy
+                      const fileResp = await fetch(`/api/files/${encodeURIComponent(jobId)}/download/${encodeURIComponent(filename)}`)
+                      if (fileResp.ok) {
+                        const blob = await fileResp.blob()
+                        const downloadUrl = window.URL.createObjectURL(blob)
+                        const a = document.createElement('a')
+                        a.href = downloadUrl
+                        a.download = filename
+                        document.body.appendChild(a)
+                        a.click()
+                        window.URL.revokeObjectURL(downloadUrl)
+                        document.body.removeChild(a)
+                      } else {
+                        console.error('Error downloading produced file:', fileResp.status)
+                      }
+                    }
                   }
                 } catch (e) {
-                  console.error("Error downloading file:", e)
+                  console.error('Error fetching produced files:', e)
                 }
-              }, 1000)
+              } else {
+                // failed or cancelled
+                setError(sdata.meta?.error || 'Job finalizado con error')
+              }
             }
           }
         } catch (e) {
-          console.error("Error parsing progress data:", e)
-          setError("Error procesando datos de progreso")
+          console.error('Polling error', e)
+        }
+
+        if (!stopped) {
+          setTimeout(poll, pollInterval)
         }
       }
 
-      eventSource.onerror = (event) => {
-        console.error("EventSource error:", event)
-        setError("Error en la conexión de progreso")
-        eventSource.close()
-        eventSourceRef.current = null
-        setIsLoading(false)
-      }
+      // start polling
+      setTimeout(poll, pollInterval)
 
       return true
     } catch (err) {
@@ -167,9 +169,6 @@ export function useDownloadProgress(): UseDownloadProgressResult {
   // Cleanup al desmontar el componente
   useEffect(() => {
     return () => {
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close()
-      }
       if (abortControllerRef.current) {
         abortControllerRef.current.abort()
       }
