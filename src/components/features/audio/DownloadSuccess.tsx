@@ -3,6 +3,7 @@ import { Badge } from "@/src/components/ui/badge"
 import { Button } from "@/src/components/ui/button"
 import { FileDownloadActions } from "@/src/components/features/shared/FileDownloadActions"
 import { downloadFile } from "@/src/lib/utils/download-helpers"
+import { DOWNLOAD_MESSAGES, FILE_MESSAGES } from "@/src/constants/messages"
 import type { ProducedFile, AudioInfoResponse } from "@/src/types/api"
 
 interface DownloadSuccessProps {
@@ -40,11 +41,11 @@ export function DownloadSuccess({
         <div className="flex items-start gap-3">
           <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <p className="text-sm font-bold text-primary mb-1">Canción descargada</p>
+            <p className="text-sm font-bold text-primary mb-1">{DOWNLOAD_MESSAGES.SUCCESS.AUDIO_SINGLE}</p>
             <p className="text-xs text-primary/80 mb-2">
               {fileDownloaded 
-                ? 'Tu archivo .mp3 se descargó automáticamente.' 
-                : 'Procesando la descarga del archivo...'}
+                ? DOWNLOAD_MESSAGES.SUCCESS.AUTO_DOWNLOAD
+                : DOWNLOAD_MESSAGES.PROCESSING.FINALIZING}
             </p>
             <div className="flex flex-wrap gap-1">
               {quality && (

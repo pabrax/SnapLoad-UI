@@ -17,6 +17,7 @@ import { DownloadError } from "./DownloadError"
 import { isPlaylistUrl } from "@/src/lib/utils/download-helpers"
 import { isValidContentUrl, sanitizeYouTubeUrl } from "@/src/lib/validators"
 import { DEFAULT_QUALITY } from "@/src/constants/audio"
+import { FORM_LABELS, BUTTON_LABELS, DOWNLOAD_MESSAGES, TOAST_MESSAGES } from "@/src/constants/messages"
 import { useToast } from "@/src/hooks/use-toast"
 import type { AudioInfoResponse, DownloadStatus, BackendStatus } from "@/src/types/api"
 
@@ -44,6 +45,7 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
     fileDownloaded,
     startDownload: startProgressDownload, 
     cancelDownload,
+    resetProgressState,
     clearError: clearProgressError 
   } = useDownloadProgress()
 
@@ -68,12 +70,14 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
     setAudioInfo(null)
   }, [url, clearError, error, progressError, clearProgressError])
 
-  // Sincronizar estado UI de éxito cuando hook reporta éxito
+  // Sincronizar estado UI de éxito cuando hook reporta éxito o ready
+  // Una vez en success, mantener ese estado (no volver atrás)
   useEffect(() => {
-    if (progressStatus === 'success') {
+    if ((progressStatus === 'success' || progressStatus === 'ready') && status !== 'success') {
+      console.log('[AUDIO-FORM] Setting status to success from progressStatus:', progressStatus)
       setStatus('success')
     }
-  }, [progressStatus])
+  }, [progressStatus, status])
 
   const validateUrl = (u: string): boolean => {
     try {
@@ -91,8 +95,8 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
     if (wasModified) {
       setUrl(sanitized)
       toast({
-        title: "URL modificada",
-        description: warning,
+        title: TOAST_MESSAGES.URL_SANITIZED.title,
+        description: warning || TOAST_MESSAGES.URL_SANITIZED.description,
         variant: "default",
       })
     }
@@ -132,8 +136,8 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
     if (wasModified) {
       setUrl(sanitized)
       toast({
-        title: "URL modificada",
-        description: warning,
+        title: TOAST_MESSAGES.URL_SANITIZED.title,
+        description: warning || TOAST_MESSAGES.URL_SANITIZED.description,
         variant: "default",
       })
     }
@@ -173,11 +177,17 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
   }
 
   const handleCleanup = () => {
+    // Reset all state to initial values
     setStatus('idle')
     setUrl('')
     setAudioInfo(null)
-    resetPlaylistState()
     setResultQuality(null)
+    
+    // Reset hooks
+    resetPlaylistState()
+    resetProgressState()
+    
+    // Clear errors
     clearError()
     clearProgressError()
   }
@@ -188,7 +198,8 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
     if (!validateUrl(url) && url) {
       return "URL no soportada. Usa enlaces válidos de Spotify o YouTube."
     }
-    if (status === "error") {
+    // Solo mostrar error si realmente falló, no si está en success/ready
+    if (status === "error" && progressStatus !== 'success' && progressStatus !== 'ready') {
       return "Fallo en el job o descarga."
     }
     return null
@@ -218,13 +229,13 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
       <form onSubmit={handleDownload} className="space-y-5">
         <div className="space-y-2">
           <label htmlFor="url" className="text-sm font-bold text-foreground uppercase tracking-wide">
-            URL del Audio
+            {FORM_LABELS.URL_INPUT.AUDIO}
           </label>
           <div className="relative">
             <Input
               id="url"
               type="url"
-              placeholder="Ej: https://open.spotify.com/track/... o https://www.youtube.com/watch?v=..."
+              placeholder={FORM_LABELS.URL_INPUT.PLACEHOLDER_AUDIO}
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               disabled={isLoading || status === "info-loading"}
@@ -266,12 +277,14 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
           {isDownloading ? (
             <>
               <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              {progressMessage || (isPlaylistPolling ? 'Procesando playlist...' : 'Procesando descarga...')}
+              {progressMessage || (isPlaylistPolling 
+                ? DOWNLOAD_MESSAGES.PROCESSING.PLAYLIST_PROCESSING 
+                : DOWNLOAD_MESSAGES.PROCESSING.DOWNLOADING)}
             </>
           ) : (
             <>
               <Download className="w-5 h-5 mr-2" />
-              Descargar Ahora
+              {BUTTON_LABELS.DOWNLOAD_NOW}
             </>
           )}
         </Button>

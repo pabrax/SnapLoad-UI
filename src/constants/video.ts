@@ -1,6 +1,8 @@
-export const VIDEO_FORMATS = [
-  { value: "mp4", label: "MP4" },
-  { value: "webm", label: "WebM" },
-] as const
+import { VALID_VIDEO_FORMATS, type VideoFormat } from "@/src/config/backend"
 
-export const DEFAULT_VIDEO_FORMAT = "webm"
+export const VIDEO_FORMATS = VALID_VIDEO_FORMATS.map(format => ({
+  value: format,
+  label: format.toUpperCase(),
+}))
+
+export const DEFAULT_VIDEO_FORMAT: VideoFormat = "webm"

@@ -25,7 +25,10 @@ export function VideoDownloadSuccess({ files, jobId, onClean }: VideoDownloadSuc
       
       <FileDownloadActions 
         jobId={jobId} 
-        files={files.map(f => ({ name: f.name, size_bytes: f.size }))} 
+        files={files.filter(f => f.name).map(f => ({ 
+          name: f.name, 
+          size_bytes: f.size 
+        }))} 
         showIndividual={true}
         onClean={onClean}
       />

@@ -1,6 +1,6 @@
 import { useState, useRef } from "react"
 import { useToast } from "@/src/hooks/use-toast"
-import { POLLING_INTERVAL } from "@/src/constants/audio"
+import { pollJobStatus, enqueueDownload } from "@/src/lib/utils/polling-helpers"
 import { downloadFile } from "@/src/lib/utils/download-helpers"
 import type { VideoJobStatus, VideoFile } from "@/src/types/api"
 
@@ -30,7 +30,7 @@ export function useVideoDownload(): UseVideoDownloadReturn {
     setErrorMsg(null)
     setFiles([])
     setJobId(null)
-    pollingStoppedRef.current = false // Reset polling flag
+    pollingStoppedRef.current = false
 
     if (!url.trim()) {
       setErrorMsg("Introduce una URL")
@@ -54,83 +54,67 @@ export function useVideoDownload(): UseVideoDownloadReturn {
       if (!jid) throw new Error("No job id returned")
       
       setJobId(jid)
-      setStatus("polling")
-
-      // Poll status usando recursión en lugar de while loop
-      let consecutiveErrors = 0
-      const MAX_CONSECUTIVE_ERRORS = 3
       
-      const poll = async (): Promise<void> => {
-        // Check if polling should stop
-        if (pollingStoppedRef.current) {
-          console.log("Video polling detenido por cancelación")
-          return
-        }
-
+      // Check cache hit
+      if (data.status === 'ready' && data.files && data.files.length > 0) {
         try {
-          const sres = await fetch(`/api/status/${encodeURIComponent(jid)}`)
-          if (!sres.ok) {
-            consecutiveErrors++
-            console.warn('Status fetch failed:', sres.status, `(${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS})`)
+          const fres = await fetch(`/api/files/${encodeURIComponent(jid)}`)
+          if (fres.ok) {
+            const fdata = await fres.json()
+            const fileList = fdata.files.map((f: any) => ({ 
+              name: f.name, 
+              size: f.size_bytes 
+            }))
+            setFiles(fileList)
+            setStatus("success")
             
-            if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-              throw new Error('No se puede conectar con el backend. Verifica que esté ejecutándose.')
+            for (const f of fdata.files) {
+              await downloadFile(jid, f.name)
             }
             
-            // Retry
-            if (!pollingStoppedRef.current) {
-              setTimeout(() => poll(), POLLING_INTERVAL)
-            }
             return
           }
-          
-          consecutiveErrors = 0 // Reset on success
-          
-          const sdata = await sres.json()
-          const st = (sdata.status || sdata.meta?.status || "").toLowerCase()
-          
-          if (["success", "failed", "cancelled"].includes(st)) {
-            if (st === "success") {
-              // Get files
-              const fres = await fetch(`/api/files/${encodeURIComponent(jid)}`)
-              if (!fres.ok) throw new Error("Error listando ficheros")
-              
-              const fdata = await fres.json()
-              const list = fdata.files || []
-              
-              setFiles(list.map((f: any) => ({ name: f.name, size: f.size })))
-              setStatus("success")
-
-              // Auto-download sequentially
-              for (const f of list) {
-                await downloadFile(jid, f.name)
-              }
-            } else {
-              throw new Error(sdata.meta?.error || "Job finalizado con error")
-            }
-          } else {
-            // Continue polling
-            if (!pollingStoppedRef.current) {
-              setTimeout(() => poll(), POLLING_INTERVAL)
-            }
-          }
-        } catch (err: any) {
-          consecutiveErrors++
-          console.warn("poll error", err, `(${consecutiveErrors}/${MAX_CONSECUTIVE_ERRORS})`)
-          
-          if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
-            throw new Error('No se puede conectar con el backend. Verifica que esté ejecutándose.')
-          }
-          
-          // Retry if not max errors
-          if (!pollingStoppedRef.current && consecutiveErrors < MAX_CONSECUTIVE_ERRORS) {
-            setTimeout(() => poll(), POLLING_INTERVAL)
-          }
+        } catch (e) {
+          console.error("Error loading cached files:", e)
         }
+        
+        // Fallback
+        const fileList = data.files.map((f: any) => {
+          if (typeof f === 'string') {
+            const filename = f.split('/').pop() || f
+            return { name: filename, size: undefined }
+          }
+          return { name: f.name || f.filename, size: f.size || f.size_bytes }
+        })
+        setFiles(fileList)
+        setStatus("success")
+        
+        for (const f of fileList) {
+          await downloadFile(jid, f.name)
+        }
+        
+        return
       }
-
+      
       // Start polling
-      setTimeout(() => poll(), POLLING_INTERVAL)
+      setStatus("polling")
+
+      await pollJobStatus({
+        jobId: jid,
+        shouldStop: () => pollingStoppedRef.current,
+        onSuccess: async (files) => {
+          setFiles(files.map(f => ({ name: f.name, size: f.size_bytes })))
+          setStatus("success")
+
+          for (const f of files) {
+            await downloadFile(jid, f.name)
+          }
+        },
+        onError: (error) => {
+          setErrorMsg(error.message)
+          setStatus("error")
+        }
+      })
 
     } catch (err: any) {
       console.error(err)
@@ -158,7 +142,6 @@ export function useVideoDownload(): UseVideoDownloadReturn {
         })
         
         if (response.ok) {
-          console.log("Video job cancelado en el backend:", jobId)
           toast({
             title: "Descarga de video cancelada",
             description: "La descarga de video ha sido cancelada exitosamente.",

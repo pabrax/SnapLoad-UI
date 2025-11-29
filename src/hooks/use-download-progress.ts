@@ -15,6 +15,7 @@ export interface UseDownloadProgressResult {
   fileDownloaded: boolean
   startDownload: (url: string, quality?: string) => Promise<boolean>
   cancelDownload: () => void
+  resetProgressState: () => void
   clearError: () => void
 }
 
@@ -36,6 +37,18 @@ export function useDownloadProgress(): UseDownloadProgressResult {
     setError(null)
   }, [])
 
+  const resetProgressState = useCallback(() => {
+    setIsLoading(false)
+    setProgress(0)
+    setStatus("idle")
+    setMessage("")
+    setError(null)
+    setDownloadId(null)
+    setProducedFiles([])
+    setFileDownloaded(false)
+    pollingStoppedRef.current = false
+  }, [])
+
   const cancelDownload = useCallback(async () => {
     // Detener polling inmediatamente
     pollingStoppedRef.current = true
@@ -48,7 +61,6 @@ export function useDownloadProgress(): UseDownloadProgressResult {
         })
         
         if (response.ok) {
-          console.log("Job cancelado en el backend:", downloadId)
           toast({
             title: "Descarga cancelada",
             description: "La descarga ha sido cancelada exitosamente.",
@@ -123,6 +135,89 @@ export function useDownloadProgress(): UseDownloadProgressResult {
       }
 
       const downloadResponse = await response.json()
+      
+      // Si el backend devolvió status='ready' con files, es un reuso de cache (no necesita polling)
+      if (downloadResponse.status === 'ready' && Array.isArray(downloadResponse.files) && downloadResponse.files.length > 0) {
+        const jobId = downloadResponse.job_id
+        setDownloadId(jobId)
+        setMessage(downloadResponse.message || 'Descarga disponible')
+        
+        // Si tenemos job_id, cargar archivos desde /api/files/{jobId} para tener metadata completa
+        if (jobId) {
+          try {
+            const fres = await fetch(`/api/files/${encodeURIComponent(jobId)}`)
+            if (fres.ok) {
+              const fdata = await fres.json()
+              const files = fdata.files || []
+              setProducedFiles(files.map((f: any) => ({ name: f.name, size_bytes: f.size_bytes })))
+              
+              // IMPORTANTE: Marcar success DESPUÉS de setear files
+              setProgress(100)
+              setStatus('success')
+              setIsLoading(false)
+              
+              // Auto-descarga si es solo un archivo
+              if (files.length === 1) {
+                try {
+                  const filename = files[0].name
+                  const fileResp = await fetch(`/api/files/${encodeURIComponent(jobId)}/download/${encodeURIComponent(filename)}`)
+                  if (fileResp.ok) {
+                    const blob = await fileResp.blob()
+                    const downloadUrl = window.URL.createObjectURL(blob)
+                    const a = document.createElement('a')
+                    a.href = downloadUrl
+                    a.download = filename
+                    document.body.appendChild(a)
+                    a.click()
+                    window.URL.revokeObjectURL(downloadUrl)
+                    document.body.removeChild(a)
+                    setFileDownloaded(true)
+                  }
+                } catch (e) {
+                  console.error('[DOWNLOAD-PROGRESS] auto-download failed', e)
+                }
+              }
+            } else {
+              console.warn('[DOWNLOAD-PROGRESS] /api/files returned not ok, using fallback')
+              // Fallback: mapear files desde paths
+              const files = downloadResponse.files.map((path: string) => {
+                const filename = path.split('/').pop() || path
+                return { name: filename, size_bytes: undefined }
+              })
+              setProducedFiles(files)
+              setProgress(100)
+              setStatus('success')
+              setIsLoading(false)
+            }
+          } catch (e) {
+            console.error('[DOWNLOAD-PROGRESS] Error fetching files from job_id:', e)
+            // Fallback: mapear files desde paths
+            const files = downloadResponse.files.map((path: string) => {
+              const filename = path.split('/').pop() || path
+              return { name: filename, size_bytes: undefined }
+            })
+            setProducedFiles(files)
+            setProgress(100)
+            setStatus('success')
+            setIsLoading(false)
+          }
+        } else {
+          console.log('[DOWNLOAD-PROGRESS] No job_id, using paths fallback')
+          // Sin job_id, mapear desde paths
+          const files = downloadResponse.files.map((path: string) => {
+            const filename = path.split('/').pop() || path
+            return { name: filename, size_bytes: undefined }
+          })
+          setProducedFiles(files)
+          setProgress(100)
+          setStatus('success')
+          setIsLoading(false)
+        }
+        
+        console.log('[DOWNLOAD-PROGRESS] Cache hit processing complete')
+        return true
+      }
+      
       const jobId = downloadResponse.job_id || downloadResponse.download_id || null
       if (!jobId) throw new Error('No job_id returned from backend')
       setDownloadId(jobId)
@@ -275,6 +370,7 @@ export function useDownloadProgress(): UseDownloadProgressResult {
     fileDownloaded,
     startDownload,
     cancelDownload,
+    resetProgressState,
     clearError
   }
 }
