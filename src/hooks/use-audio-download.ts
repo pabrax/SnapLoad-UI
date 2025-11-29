@@ -1,6 +1,7 @@
 import { useState, useRef } from "react"
 import { useToast } from "@/src/hooks/use-toast"
-import { POLLING_INTERVAL } from "@/src/constants/audio"
+import { useErrorHandler } from "@/src/hooks/use-error-handler"
+import { pollJobStatus, enqueueDownload } from "@/src/lib/utils/polling-helpers"
 import { isPlaylistUrl } from "@/src/lib/utils/download-helpers"
 import type { ProducedFile } from "@/src/types/api"
 
@@ -24,8 +25,9 @@ export function useAudioDownload(): UseAudioDownloadReturn {
   const pollingStoppedRef = useRef(false)
   const currentJobIdRef = useRef<string | null>(null)
   const { toast } = useToast()
+  const { handleError } = useErrorHandler()
 
-  const handlePlaylistDownload = async (url: string, quality: string): Promise<boolean> => {
+  const handlePlaylistDownload = async (url: string, quality: string) => {
     if (!isPlaylistUrl(url)) {
       return false
     }
@@ -34,77 +36,35 @@ export function useAudioDownload(): UseAudioDownloadReturn {
       setIsPlaylistPolling(true)
       pollingStoppedRef.current = false
       
-      const resp = await fetch('/api/download-with-progress', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, quality }),
-      })
-      
-      if (!resp.ok) throw new Error('Error al encolar descarga')
-      
-      const data = await resp.json()
-      const jobId = data.job_id || data.download_id
-      if (!jobId) throw new Error('No job_id returned')
-      
+      const jobId = await enqueueDownload(url, { quality })
       currentJobIdRef.current = jobId
 
-      // Poll usando recursión en lugar de while
-      const poll = async (): Promise<void> => {
-        if (pollingStoppedRef.current) {
-          console.log('Playlist polling detenido por cancelación')
-          return
+      await pollJobStatus({
+        jobId,
+        shouldStop: () => pollingStoppedRef.current,
+        onSuccess: async (files) => {
+          setOverrideFiles(files.map(f => ({ 
+            name: f.name, 
+            size_bytes: f.size_bytes 
+          })))
+          setOverrideJobId(jobId)
+          setIsPlaylistPolling(false)
+        },
+        onError: (error) => {
+          handleError(error, { 
+            context: 'Playlist polling',
+            customMessage: 'Error al procesar la playlist'
+          })
+          setIsPlaylistPolling(false)
         }
-        
-        try {
-          const sres = await fetch(`/api/status/${encodeURIComponent(jobId)}`)
-          if (!sres.ok) {
-            if (!pollingStoppedRef.current) {
-              setTimeout(() => poll(), POLLING_INTERVAL)
-            }
-            return
-          }
-          
-          const sdata = await sres.json()
-          const st = (sdata.status || sdata.meta?.status || '').toLowerCase()
-          
-          if (['success', 'failed', 'cancelled'].includes(st)) {
-            if (st === 'success') {
-              // Obtener lista de ficheros para UI
-              const fres = await fetch(`/api/files/${encodeURIComponent(jobId)}`)
-              if (!fres.ok) throw new Error('Error listando ficheros producidos')
-              
-              const fdata = await fres.json()
-              const files = fdata.files || []
-              
-              setOverrideFiles(files.map((f: any) => ({ 
-                name: f.name, 
-                size_bytes: f.size_bytes 
-              })))
-              setOverrideJobId(jobId)
-              setIsPlaylistPolling(false)
-            } else {
-              throw new Error(sdata.meta?.error || 'Job finalizado con error')
-            }
-          } else {
-            // Continue polling
-            if (!pollingStoppedRef.current) {
-              setTimeout(() => poll(), POLLING_INTERVAL)
-            }
-          }
-        } catch (e) {
-          console.warn('Polling error', e)
-          if (!pollingStoppedRef.current) {
-            setTimeout(() => poll(), POLLING_INTERVAL)
-          }
-        }
-      }
-
-      // Start polling
-      setTimeout(() => poll(), POLLING_INTERVAL)
+      })
       
       return true
     } catch (err) {
-      console.error('Playlist download error', err)
+      handleError(err, { 
+        context: 'Playlist download',
+        customMessage: 'Error al descargar la playlist'
+      })
       setIsPlaylistPolling(false)
       throw err
     }
@@ -120,25 +80,20 @@ export function useAudioDownload(): UseAudioDownloadReturn {
         })
         
         if (response.ok) {
-          console.log("Playlist job cancelado en el backend:", currentJobIdRef.current)
           toast({
             title: "Descarga de playlist cancelada",
             description: "La descarga de la playlist ha sido cancelada exitosamente.",
           })
         } else {
-          console.warn("No se pudo cancelar playlist en el backend:", await response.text())
-          toast({
-            title: "Descarga de playlist detenida",
-            description: "Se detuvo el proceso localmente.",
-            variant: "destructive",
+          handleError("No se pudo cancelar playlist en el backend", {
+            showToast: true,
+            customMessage: "Se detuvo el proceso localmente."
           })
         }
       } catch (error) {
-        console.error("Error al cancelar playlist en el backend:", error)
-        toast({
-          title: "Descarga de playlist detenida",
-          description: "Se detuvo el proceso localmente.",
-          variant: "destructive",
+        handleError(error, {
+          context: 'Cancel playlist',
+          customMessage: 'Se detuvo el proceso localmente.'
         })
       }
     } else {

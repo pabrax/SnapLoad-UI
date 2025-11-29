@@ -15,6 +15,35 @@ export async function POST(request: NextRequest) {
     const timeoutId = setTimeout(() => controller.abort(), 120000)
 
     try {
+      // 1) Pre-chequear con /lookup para evitar encolar si ya existe
+      const lookupParams = new URLSearchParams()
+      lookupParams.set('url', url)
+      lookupParams.set('type', 'audio')
+      if (quality) lookupParams.set('quality', String(quality))
+      const lookupRes = await fetch(backendUrl(`/lookup?${lookupParams.toString()}`), { method: 'GET', signal: controller.signal })
+      const lookup = await lookupRes.json().catch(() => ({}))
+      if (lookupRes.ok && lookup?.status === 'ready' && Array.isArray(lookup.files)) {
+        clearTimeout(timeoutId)
+        return NextResponse.json({
+          message: 'Reusado desde lookup',
+          url,
+          source: 'audio',
+          files: lookup.files,
+          status: 'ready',
+          job_id: lookup.job_id || null
+        }, { status: 200 })
+      }
+      if (lookupRes.ok && lookup?.status === 'pending' && lookup?.job_id) {
+        // devolvemos el mismo contrato que /download para que el front haga polling
+        clearTimeout(timeoutId)
+        return NextResponse.json({
+          message: 'Descarga ya en progreso',
+          job_id: lookup.job_id,
+          url,
+          source: 'audio'
+        }, { status: 202 })
+      }
+
       const downloadResponse = await fetch(backendUrl("/download"), {
         method: "POST",
         headers: {
@@ -33,7 +62,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: result.detail || result.error || "Error al iniciar la descarga" }, { status: downloadResponse.status })
       }
 
-      return NextResponse.json(result, { status: downloadResponse.status })
+      // Normalizar: si hay files, tratamos como ready
+      const normalized = {
+        ...result,
+        status: result.status || (Array.isArray(result.files) && result.files.length > 0 ? 'ready' : (downloadResponse.status === 202 ? 'pending' : 'ok'))
+      }
+      return NextResponse.json(normalized, { status: downloadResponse.status })
 
     } catch (error: any) {
       clearTimeout(timeoutId)

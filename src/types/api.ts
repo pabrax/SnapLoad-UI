@@ -1,4 +1,5 @@
 // Types for backend API integration — aligned with backend FastAPI responses.
+import type { JobStatus as JobStatusType } from "@/src/config/backend"
 
 // --- Requests ---
 export interface DownloadRequest {
@@ -22,8 +23,8 @@ export interface DownloadEnqueueResponse {
   source?: string
 }
 
-// Lightweight status response (GET /status/{job_id})
-export type JobStatus = "queued" | "running" | "completed" | "failed" | "cancelled" | "unknown"
+// Lightweight status response (GET /jobs/{job_id})
+export type JobStatus = JobStatusType
 
 export interface StatusResponse {
   job_id: string
@@ -58,34 +59,7 @@ export interface ZipDownloadResponse {
 
 // Archive/download endpoints return binary FileResponses and are not modeled here.
 
-// --- Legacy / compatibility types ---
-// Some UI code previously used playlist/multi-progress shapes. Keep small, optional
-// types here for backward compatibility but prefer the job/status/files flow above.
-
-export interface FileInfo {
-  name: string
-  size?: number
-  path?: string
-}
-
-export interface DownloadedFile extends FileInfo {
-  folder?: string
-}
-
-// Deprecated: multi-file progress structures (prefer JobStatus + meta/files endpoints)
-export interface MultiProgressData {
-  // minimal shape kept for compatibility
-  download_id?: string
-  total_files?: number
-  completed_files?: number
-  failed_files?: number
-  overall_progress?: number
-  overall_status?: string
-  files_info?: FileListItem[]
-  error?: string
-}
-
-// Health / helper responses (unchanged semantics)
+// Health / helper responses
 export interface HealthCheckResponse {
   status: string
   spotify_auth: boolean
@@ -116,18 +90,6 @@ export interface AudioInfoResponse {
 
 // UI-specific types
 export type DownloadStatus = "idle" | "loading" | "success" | "error" | "info-loading"
-
-export interface DownloadResult {
-  fileName: string
-  fileSize?: number
-  metadata?: {
-    title?: string
-    artist?: string
-    duration?: number
-    quality?: string
-    platform?: string
-  }
-}
 
 export interface ProducedFile {
   name: string

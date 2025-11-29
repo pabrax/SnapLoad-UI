@@ -6,7 +6,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   if (!jobId) return NextResponse.json({ error: "jobId is required" }, { status: 400 })
 
   try {
-    const res = await fetch(backendUrl(`/status/${encodeURIComponent(jobId)}`), { method: 'GET' })
+    const res = await fetch(backendUrl(`/jobs/${encodeURIComponent(jobId)}`), { method: 'GET' })
     const data = await res.json().catch(() => ({}))
     if (!res.ok) return NextResponse.json({ error: data.detail || data.error || 'Error fetching status' }, { status: res.status })
     return NextResponse.json(data)

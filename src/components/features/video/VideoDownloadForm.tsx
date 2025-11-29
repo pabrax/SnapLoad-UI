@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Download, Loader2 } from "lucide-react"
 import { Button } from "@/src/components/ui/button"
 import { Input } from "@/src/components/ui/input"
@@ -23,6 +22,7 @@ export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormPr
   const [url, setUrl] = useState("")
   const [format, setFormat] = useState(DEFAULT_VIDEO_FORMAT)
   const [urlError, setUrlError] = useState<string | null>(null)
+  const [componentStatus, setComponentStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const { toast } = useToast()
 
   const {
@@ -34,6 +34,15 @@ export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormPr
     cancelVideoDownload,
     resetVideoState,
   } = useVideoDownload()
+
+  // Sync hook status to component status
+  useEffect(() => {
+    if (status === 'success' && files.length > 0 && componentStatus !== 'success') {
+      setComponentStatus('success')
+    } else if (status === 'error' && componentStatus !== 'error') {
+      setComponentStatus('error')
+    }
+  }, [status, files.length, componentStatus])
 
   const validateUrl = (u: string): boolean => {
     try {
@@ -89,6 +98,7 @@ export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormPr
   }
 
   const handleCleanup = () => {
+    setComponentStatus('idle')
     resetVideoState()
     setUrl("")
     setUrlError(null)
@@ -167,7 +177,7 @@ export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormPr
       )}
 
       {/* Success */}
-      {status === "success" && (
+      {componentStatus === "success" && files.length > 0 && (
         <VideoDownloadSuccess 
           files={files} 
           jobId={jobId} 
@@ -176,7 +186,7 @@ export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormPr
       )}
 
       {/* Error */}
-      {(status === "error" || errorMsg) && (
+      {(componentStatus === "error" || errorMsg) && (
         <DownloadError
           error={errorMsg || "No se pudo completar la operación"}
           onClose={handleCleanup}
