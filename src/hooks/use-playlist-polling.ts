@@ -21,9 +21,11 @@ interface UsePlaylistPollingProps {
 export function usePlaylistPolling({ isActive, progressStatus, progressMessage }: UsePlaylistPollingProps) {
   const [pollingTick, setPollingTick] = useState(0)
 
-  // Tick to rotate informative messages during polling
   useEffect(() => {
-    const polling = isActive || progressStatus === 'queued' || progressStatus === 'running'
+    const terminalStates = ['success', 'failed', 'cancelled', 'error']
+    const isTerminal = progressStatus ? terminalStates.includes(progressStatus) : false
+    
+    const polling = (isActive || progressStatus === 'queued' || progressStatus === 'running') && !isTerminal
     if (!polling) return
     
     const id = setInterval(() => setPollingTick((t) => t + 1), 3000)

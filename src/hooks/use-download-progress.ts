@@ -50,10 +50,8 @@ export function useDownloadProgress(): UseDownloadProgressResult {
   }, [])
 
   const cancelDownload = useCallback(async () => {
-    // Detener polling inmediatamente
     pollingStoppedRef.current = true
 
-    // Si hay un downloadId, cancelar en el backend
     if (downloadId) {
       try {
         const response = await fetch(`/api/cancel/${encodeURIComponent(downloadId)}`, {
@@ -88,13 +86,11 @@ export function useDownloadProgress(): UseDownloadProgressResult {
       })
     }
 
-    // Cancelar request si existe
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
       abortControllerRef.current = null
     }
 
-    // Limpiar estado
     setIsLoading(false)
     setProgress(0)
     setStatus("cancelled")
@@ -109,9 +105,8 @@ export function useDownloadProgress(): UseDownloadProgressResult {
       setProgress(0)
       setStatus("starting")
       setMessage("Iniciando descarga...")
-      pollingStoppedRef.current = false // Reset polling flag
+      pollingStoppedRef.current = false
 
-      // Crear AbortController para cancelación
       abortControllerRef.current = new AbortController()
 
       const downloadRequest: DownloadRequest = {
@@ -119,7 +114,6 @@ export function useDownloadProgress(): UseDownloadProgressResult {
         quality,
       }
 
-      // Iniciar descarga (backend encola job y devuelve job_id)
       const response = await fetch("/api/download-with-progress", {
         method: "POST",
         headers: {
@@ -136,7 +130,6 @@ export function useDownloadProgress(): UseDownloadProgressResult {
 
       const downloadResponse = await response.json()
       
-      // Si el backend devolvió status='ready' con files, es un reuso de cache (no necesita polling)
       if (downloadResponse.status === 'ready' && Array.isArray(downloadResponse.files) && downloadResponse.files.length > 0) {
         const jobId = downloadResponse.job_id
         setDownloadId(jobId)
@@ -232,7 +225,6 @@ export function useDownloadProgress(): UseDownloadProgressResult {
       const MAX_CONSECUTIVE_ERRORS = 3
 
       const poll = async () => {
-        // Check if polling should stop
         if (pollingStoppedRef.current) {
           console.log("Polling detenido por cancelación")
           return

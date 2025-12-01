@@ -100,7 +100,6 @@ export function DownloadSuccess({
     )
   }
 
-  // Playlist/varios archivos
   return (
     <div className="mt-4 p-4 bg-primary/15 border-2 border-primary rounded-lg backdrop-blur-sm space-y-3">
       <div className="flex items-start gap-3">

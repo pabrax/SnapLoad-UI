@@ -78,7 +78,6 @@ export function useVideoDownload(): UseVideoDownloadReturn {
           console.error("Error loading cached files:", e)
         }
         
-        // Fallback
         const fileList = data.files.map((f: any) => {
           if (typeof f === 'string') {
             const filename = f.split('/').pop() || f
@@ -96,7 +95,6 @@ export function useVideoDownload(): UseVideoDownloadReturn {
         return
       }
       
-      // Start polling
       setStatus("polling")
 
       await pollJobStatus({
@@ -131,10 +129,8 @@ export function useVideoDownload(): UseVideoDownloadReturn {
   }
 
   const cancelVideoDownload = async () => {
-    // Detener polling inmediatamente
     pollingStoppedRef.current = true
 
-    // Si hay un jobId, cancelar en el backend
     if (jobId) {
       try {
         const response = await fetch(`/api/cancel/${encodeURIComponent(jobId)}`, {
@@ -169,7 +165,6 @@ export function useVideoDownload(): UseVideoDownloadReturn {
       })
     }
 
-    // Limpiar estado
     setStatus("idle")
     setFiles([])
     setErrorMsg(null)

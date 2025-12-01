@@ -63,15 +63,12 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
     progressMessage,
   })
 
-  // Limpiar errores cuando cambia la URL
   useEffect(() => {
     if (error) clearError()
     if (progressError) clearProgressError()
     setAudioInfo(null)
   }, [url, clearError, error, progressError, clearProgressError])
 
-  // Sincronizar estado UI de éxito cuando hook reporta éxito o ready
-  // Una vez en success, mantener ese estado (no volver atrás)
   useEffect(() => {
     if ((progressStatus === 'success' || progressStatus === 'ready') && status !== 'success') {
       console.log('[AUDIO-FORM] Setting status to success from progressStatus:', progressStatus)
@@ -90,7 +87,6 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
   const handleGetInfo = async () => {
     if (!url.trim()) return
     
-    // Sanitize YouTube URLs
     const { sanitized, wasModified, warning } = sanitizeYouTubeUrl(url)
     if (wasModified) {
       setUrl(sanitized)
@@ -150,13 +146,10 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
     
     setStatus("loading")
     
-    // limpiar cualquier resultado anterior SOLO cuando se confirma nueva descarga
     resetPlaylistState()
     
-    // snapshot de la calidad seleccionada para mostrar en resultado
     setResultQuality(quality)
 
-    // Detectar playlist
     if (isPlaylistUrl(finalUrl)) {
       try {
         await handlePlaylistDownload(finalUrl, quality)
@@ -166,7 +159,6 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
         setStatus('error')
       }
     } else {
-      // Descarga individual
       const started = await startProgressDownload(finalUrl, quality)
       if (!started) { 
         setStatus("error") 
@@ -177,17 +169,14 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
   }
 
   const handleCleanup = () => {
-    // Reset all state to initial values
     setStatus('idle')
     setUrl('')
     setAudioInfo(null)
     setResultQuality(null)
     
-    // Reset hooks
     resetPlaylistState()
     resetProgressState()
     
-    // Clear errors
     clearError()
     clearProgressError()
   }

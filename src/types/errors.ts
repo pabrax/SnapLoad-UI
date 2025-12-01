@@ -7,20 +7,12 @@
 // Backend Error Response Structure
 // ============================================================================
 
-/**
- * Standard FastAPI error response
- */
 export interface BackendErrorResponse {
   detail: string
-  // Additional context fields that backend exceptions may include
   message?: string
   details?: string
   error?: string
 }
-
-// ============================================================================
-// Typed Error Classes (matching backend exceptions)
-// ============================================================================
 
 export class SnapLoadError extends Error {
   public type: string
