@@ -35,7 +35,6 @@ export function useErrorHandler() {
       context,
     } = options
 
-    // Parse error
     let parsedError: SnapLoadError
     if (typeof error === "object" && error !== null && "detail" in error) {
       parsedError = parseBackendError(error as any)
@@ -47,14 +46,12 @@ export function useErrorHandler() {
       parsedError = parseBackendError("Error desconocido")
     }
 
-    // Log error with context
     const logMessage = context ? `[${context}]` : ""
     console.error(`${logMessage} Error:`, parsedError)
     if (parsedError.details) {
       console.error(`${logMessage} Details:`, parsedError.details)
     }
 
-    // Show toast if requested
     if (showToast) {
       const severity = getErrorSeverity(parsedError)
       const message = customMessage || getUserFriendlyMessage(parsedError)
