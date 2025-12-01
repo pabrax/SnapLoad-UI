@@ -61,6 +61,7 @@ export async function pollJobStatus(config: PollingConfig): Promise<void> {
       
       if (["success", "failed", "cancelled"].includes(status)) {
         if (status === "success") {
+          // Get files list
           const filesResponse = await fetch(`/api/files/${encodeURIComponent(jobId)}`)
           if (!filesResponse.ok) {
             throw new Error("Error al obtener lista de archivos")
@@ -89,6 +90,7 @@ export async function pollJobStatus(config: PollingConfig): Promise<void> {
         return
       }
       
+      // Retry if not max errors
       if (!shouldStop() && consecutiveErrors < maxConsecutiveErrors) {
         setTimeout(() => poll(), interval)
       }

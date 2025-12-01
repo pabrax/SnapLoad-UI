@@ -225,6 +225,7 @@ export function useDownloadProgress(): UseDownloadProgressResult {
       const MAX_CONSECUTIVE_ERRORS = 3
 
       const poll = async () => {
+        // Check if polling should stop
         if (pollingStoppedRef.current) {
           console.log("Polling detenido por cancelación")
           return
