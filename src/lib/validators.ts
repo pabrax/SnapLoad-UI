@@ -1,10 +1,15 @@
+// URL validators aligned with backend heuristics (FastAPI utils)
+
+/** Basic check for Spotify URLs/URIs. */
 export function isSpotifyUrl(input: string): boolean {
   if (!input || typeof input !== "string") return false
   const s = input.trim()
 
+  // spotify:track:<id> | spotify:album:<id> | spotify:playlist:<id>
   const spotifyUri = /^spotify:(track|album|playlist):([A-Za-z0-9]{22})$/
   if (spotifyUri.test(s)) return true
 
+  // https://open.spotify.com/(intl-xx/)?(track|album|playlist)/<id>[...?]
   const spotifyUrl = /^https?:\/\/open\.spotify\.com\/(?:[A-Za-z\-]+\/)?(track|album|playlist)\/([A-Za-z0-9]{22})(?:[\/?#].*)?$/
   return spotifyUrl.test(s)
 }
@@ -55,6 +60,7 @@ export function sanitizeYouTubeUrl(url: string): {
     let modified = false
     let warning: string | undefined
 
+    // Check if it's a radio playlist (RD or RDAM prefix)
     const listParam = params.get('list')
     if (listParam && (listParam.startsWith('RD') || listParam.startsWith('RDAM'))) {
       params.delete('list')
@@ -69,8 +75,11 @@ export function sanitizeYouTubeUrl(url: string): {
       modified = true
     }
 
+    // For /watch URLs with non-radio playlists, keep only the video
+    // Only allow playlists from /playlist URLs
     if (urlObj.pathname.includes('/watch') && params.has('list')) {
       const listValue = params.get('list')
+      // If it's not explicitly a /playlist URL, remove the list parameter
       if (listValue && !listValue.startsWith('RD')) {
         params.delete('list')
         params.delete('index')
