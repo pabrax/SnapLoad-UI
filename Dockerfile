@@ -12,8 +12,8 @@ RUN apt-get update && apt-get install -y \
 # Copiar archivos de dependencias
 COPY package.json package-lock.json* ./
 
-# Instalar dependencias con npm
-RUN npm ci --omit=dev || npm install --omit=dev
+# Instalar TODAS las dependencias (incluyendo devDependencies para el build)
+RUN npm ci || npm install
 
 FROM node:20-slim AS builder
 WORKDIR /app
