@@ -19,6 +19,18 @@
 
 ---
 
+## 🚀 Quick Start (Full Stack)
+
+**Want to run the complete application (Frontend + Backend)?** Use the monorepo:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/pabrax/SnapLoad/main/install.sh | bash
+```
+
+This will install and run both the web interface and the API together. **[See full documentation](https://github.com/pabrax/SnapLoad)**
+
+---
+
 ## 📋 Table of Contents
 
 - [Overview](#-overview)
