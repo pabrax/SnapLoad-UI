@@ -1,15 +1,19 @@
 FROM node:20-slim AS deps
 WORKDIR /app
 
+# Instalar dependencias del sistema
 RUN apt-get update && apt-get install -y \
     python3 \
     make \
     g++ \
+    ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --frozen-lockfile
+# Copiar archivos de dependencias
+COPY package.json package-lock.json* ./
+
+# Instalar dependencias con npm
+RUN npm ci --omit=dev || npm install --omit=dev
 
 FROM node:20-slim AS builder
 WORKDIR /app
@@ -17,10 +21,9 @@ WORKDIR /app
 ARG NEXT_PUBLIC_API_URL
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN pnpm build
+RUN npm run build
 
 FROM node:20-slim AS runner
 WORKDIR /app
