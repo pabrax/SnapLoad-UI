@@ -22,7 +22,7 @@ export function BackendDisconnectedDialog({ open, onOpenChange }: BackendDisconn
   }
 
   const handleLocalSetup = () => {
-    window.open("https://github.com/pabrax/SnapLoad/tree/main/snapLoad-API#-quick-start", "_blank")
+    window.open("https://github.com/pabrax/SnapLoad#-instalación-rápida-recomendada", "_blank")
   }
 
   return (
