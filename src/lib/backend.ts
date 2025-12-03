@@ -1,14 +1,30 @@
 // Backend base URL and helper to build absolute URLs
 
-// Para server-side (Next.js server) usa la red interna de Docker
+// Detectar si estamos en modo desarrollo o producción
+const isDevelopment = process.env.NODE_ENV === 'development'
+const isDocker = process.env.DOCKER_ENV === 'true' || process.env.HOSTNAME === '0.0.0.0'
+
+// Para server-side (Next.js server) usa la red interna de Docker o localhost
 // Para client-side (navegador) usa la URL pública
 const getBackendUrl = () => {
-  // Server-side: usar red interna Docker
-  if (typeof window === 'undefined') {
+  // Client-side (navegador)
+  if (typeof window !== 'undefined') {
+    return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:9020'
+  }
+  
+  // Server-side (Next.js server)
+  // Si estamos en Docker, usar la red interna
+  if (isDocker) {
     return process.env.BACKEND_INTERNAL_URL || 'http://snapload-api:8000'
   }
-  // Client-side: usar URL pública o fallback
-  return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
+  
+  // Si estamos en desarrollo local, usar localhost
+  if (isDevelopment) {
+    return process.env.BACKEND_INTERNAL_URL || 'http://localhost:9020'
+  }
+  
+  // Fallback: intentar red interna Docker
+  return process.env.BACKEND_INTERNAL_URL || 'http://snapload-api:8000'
 }
 
 const RAW_BASE = getBackendUrl()
