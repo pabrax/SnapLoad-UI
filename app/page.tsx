@@ -4,7 +4,7 @@ import { useState } from "react"
 import dynamic from "next/dynamic"
 import { Card } from "@/src/components/ui/card"
 import { AudioHeader } from "@/src/components/features/shared/AudioHeader"
-import { TabSelector } from "@/src/components/features/shared/TabSelector"
+import { TabSelector, tabId, panelId } from "@/src/components/features/shared/TabSelector"
 import { FeatureBadges } from "@/src/components/features/shared/FeatureBadges"
 import { BackgroundEffects } from "@/src/components/features/shared/BackgroundEffects"
 import { Footer } from "@/src/components/features/shared/LegalDisclaimer"
@@ -40,13 +40,13 @@ export default function MusicDownloader() {
         <TabSelector activeTab={tab} onTabChange={setTab} />
 
         <Card className="relative p-6 md:p-8 bg-surface border border-surface-border shadow-xl shadow-black/30">
-          {tab === 'audio' ? (
-            <AudioDownloadForm backendStatus={backendStatus} />
-          ) : (
-            <div className="relative">
+          <div role="tabpanel" id={panelId(tab)} aria-labelledby={tabId(tab)} className="relative">
+            {tab === 'audio' ? (
+              <AudioDownloadForm backendStatus={backendStatus} />
+            ) : (
               <VideoDownloader noCard backendStatus={backendStatus} />
-            </div>
-          )}
+            )}
+          </div>
         </Card>
 
         <FeatureBadges backendStatus={backendStatus} />

@@ -40,9 +40,9 @@ export function DownloadSuccess({
   if (isSingleFile) {
     // Canción individual
     return (
-      <div className="mt-4 p-4 bg-primary/15 border-2 border-primary rounded-lg">
+      <div role="status" className="mt-4 p-4 bg-primary/15 border border-primary rounded-lg">
         <div className="flex items-start gap-3">
-          <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+          <CheckCircle2 aria-hidden="true" className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
           <div className="flex-1">
             <p className="text-sm font-bold text-primary mb-1">{DOWNLOAD_MESSAGES.SUCCESS.AUDIO_SINGLE}</p>
             <p className="text-xs text-primary/80 mb-2">
@@ -82,6 +82,8 @@ export function DownloadSuccess({
                           size="sm"
                           variant="ghost"
                           onClick={() => handleDownloadSingleFile(f.name)}
+                          aria-label={`Descargar ${f.name}`}
+                          className="min-h-10"
                         >
                           Descargar
                         </Button>
@@ -104,9 +106,9 @@ export function DownloadSuccess({
   }
 
   return (
-    <div className="mt-4 p-4 bg-primary/15 border-2 border-primary rounded-lg space-y-3">
+    <div role="status" className="mt-4 p-4 bg-primary/15 border border-primary rounded-lg space-y-3">
       <div className="flex items-start gap-3">
-        <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+        <CheckCircle2 aria-hidden="true" className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
         <div className="flex-1">
           <p className="text-sm font-bold text-primary mb-1">¡Descarga exitosa!</p>
           <p className="text-xs text-primary/80 mb-2">

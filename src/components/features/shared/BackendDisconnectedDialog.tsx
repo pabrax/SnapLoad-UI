@@ -18,11 +18,11 @@ interface BackendDisconnectedDialogProps {
 
 export function BackendDisconnectedDialog({ open, onOpenChange }: BackendDisconnectedDialogProps) {
   const handleGoToRepo = () => {
-    window.open("https://github.com/pabrax/SnapLoad", "_blank")
+    window.open("https://github.com/pabrax/SnapLoad", "_blank", "noopener,noreferrer")
   }
 
   const handleLocalSetup = () => {
-    window.open("https://github.com/pabrax/SnapLoad#-instalación-rápida-recomendada", "_blank")
+    window.open("https://github.com/pabrax/SnapLoad#-instalación-rápida-recomendada", "_blank", "noopener,noreferrer")
   }
 
   return (
@@ -38,7 +38,7 @@ export function BackendDisconnectedDialog({ open, onOpenChange }: BackendDisconn
         <AlertDialogHeader>
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 rounded-full bg-red-500/10">
-              <AlertCircle className="w-6 h-6 text-red-500" />
+              <AlertCircle aria-hidden="true" className="w-6 h-6 text-red-500" />
             </div>
             <AlertDialogTitle className="text-xl text-slate-100">
               Servidor Desconectado
@@ -50,7 +50,7 @@ export function BackendDisconnectedDialog({ open, onOpenChange }: BackendDisconn
                 El servidor backend de SnapLoad no está en ejecución o no es accesible. La aplicación requiere el backend para funcionar.
               </p>
               <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">
-                <p className="text-sm font-medium text-slate-200 mb-2">💡 ¿Quieres probarlo localmente?</p>
+                <p className="text-sm font-medium text-slate-200 mb-2"><span aria-hidden="true">💡 </span>¿Quieres probarlo localmente?</p>
                 <p className="text-sm text-slate-400">
                   Puedes ejecutar tu propia instancia de SnapLoad en tu máquina. ¡Es gratis, open-source y fácil de configurar!
                 </p>

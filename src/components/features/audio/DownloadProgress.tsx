@@ -15,14 +15,12 @@ export function DownloadProgress({ isPlaylistPolling, progressStatus, pollingMes
   }
 
   return (
-    <div className="mt-4 p-4 bg-muted/20 border-2 border-muted rounded-lg">
-      <div className="flex items-center gap-2 mb-2">
-        <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse" />
-        <span className="text-sm font-semibold">
-          {getStatusLabel()}
-        </span>
+    <div role="status" aria-live="polite" aria-busy="true" className="mt-4 rounded-lg border border-surface-border bg-slate-800/60 p-4">
+      <div className="mb-2 flex items-center gap-2">
+        <span aria-hidden="true" className="inline-block h-2 w-2 animate-pulse rounded-full bg-primary" />
+        <span className="text-sm font-semibold">{getStatusLabel()}</span>
       </div>
-      <p className="text-xs text-muted-foreground">{pollingMessage}</p>
+      <p className="text-xs text-slate-300">{pollingMessage}</p>
     </div>
   )
 }
