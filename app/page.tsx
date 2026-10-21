@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import dynamic from "next/dynamic"
 import { Card } from "@/src/components/ui/card"
 import { AudioHeader } from "@/src/components/features/shared/AudioHeader"
@@ -23,6 +23,11 @@ export default function MusicDownloader() {
   const [tab, setTab] = useState<TabType>('audio')
   const [dialogDismissed, setDialogDismissed] = useState(false)
   const { backendStatus } = useBackendHealth()
+
+  // Si el servidor vuelve, un futuro corte debe volver a avisar
+  useEffect(() => {
+    if (backendStatus === 'connected') setDialogDismissed(false)
+  }, [backendStatus])
 
   const isDialogOpen = backendStatus === 'disconnected' && !dialogDismissed
 
