@@ -3,10 +3,10 @@ import { backendUrl } from "@/src/lib/backend"
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { jobId: string } }
+  { params }: { params: Promise<{ jobId: string }> }
 ) {
   try {
-    const { jobId } = params
+    const { jobId } = await params
 
     if (!jobId) {
       return NextResponse.json({ error: "Job ID es requerido" }, { status: 400 })
@@ -14,7 +14,7 @@ export async function POST(
 
     console.log("[API] Cancelling job:", jobId)
 
-    const cancelResponse = await fetch(backendUrl(`/cancel/${jobId}`), {
+    const cancelResponse = await fetch(backendUrl(`/cancel/${encodeURIComponent(jobId)}`), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
