@@ -203,6 +203,10 @@ This will start:
 
 ### Environment Variables
 
+**Optional telemetry (build-time):** Vercel Analytics is **off by default** (it is third-party telemetry and only works on Vercel). Enable it with `NEXT_PUBLIC_ENABLE_ANALYTICS=true`.
+
+**Tests:** `npm test` runs the pure-logic unit tests (`node --test`: media options, ARIA tab keyboard, health re-check schedule).
+
 **Build-time (--build-arg):**
 ```bash
 NEXT_PUBLIC_API_URL=http://your-backend-url:8000

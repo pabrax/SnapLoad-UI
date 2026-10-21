@@ -191,6 +191,10 @@ Esto iniciará:
 
 ### Variables de Entorno
 
+**Telemetría opcional (build-time):** Vercel Analytics está **desactivado por defecto** (es telemetría de terceros y solo funciona en Vercel). Se activa con `NEXT_PUBLIC_ENABLE_ANALYTICS=true`.
+
+**Pruebas:** `npm test` ejecuta los tests unitarios de lógica pura (`node --test`: opciones de medios, teclado de pestañas ARIA, calendario de recomprobación de salud).
+
 **Build-time (--build-arg):**
 ```bash
 NEXT_PUBLIC_API_URL=http://url-de-tu-backend:8000
