@@ -3,6 +3,7 @@ import { Badge } from "@/src/components/ui/badge"
 import { Button } from "@/src/components/ui/button"
 import { FileDownloadActions } from "@/src/components/features/shared/FileDownloadActions"
 import { downloadFile } from "@/src/lib/utils/download-helpers"
+import { describeAudioQuality } from "@/src/lib/media-options"
 import { DOWNLOAD_MESSAGES, FILE_MESSAGES } from "@/src/constants/messages"
 import type { ProducedFile, AudioInfoResponse } from "@/src/types/api"
 
@@ -10,6 +11,7 @@ interface DownloadSuccessProps {
   files: ProducedFile[]
   jobId: string | null
   quality: string
+  format: string
   audioInfo: AudioInfoResponse | null
   fileDownloaded?: boolean
   onClean?: () => void
@@ -18,7 +20,8 @@ interface DownloadSuccessProps {
 export function DownloadSuccess({ 
   files, 
   jobId, 
-  quality, 
+  quality,
+  format,
   audioInfo,
   fileDownloaded,
   onClean 
@@ -50,7 +53,7 @@ export function DownloadSuccess({
             <div className="flex flex-wrap gap-1">
               {quality && (
                 <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
-                  {quality} kbps
+                  {describeAudioQuality(quality, format)}
                 </Badge>
               )}
               {audioInfo?.metadata?.platform && (
@@ -112,7 +115,7 @@ export function DownloadSuccess({
           <div className="flex flex-wrap gap-1">
             {quality && (
               <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
-                {quality} kbps
+                {describeAudioQuality(quality, format)}
               </Badge>
             )}
             {audioInfo?.metadata?.platform && (

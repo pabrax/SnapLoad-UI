@@ -4,14 +4,18 @@ import type { JobStatus as JobStatusType } from "@/src/config/backend"
 // --- Requests ---
 export interface DownloadRequest {
   url: string
-  // optional audio quality (e.g. "320k" or yt-dlp quality like "0")
+  // optional bitrate in kbps ("192") or "best"; ignored by opus/flac/wav
   quality?: string
+  // optional audio format: mp3 (default), m4a, opus, ogg, flac, wav
+  format?: string
 }
 
 export interface VideoDownloadRequest {
   url: string
-  // optional video container/format (e.g. "mp4", "webm")
+  // optional video container/format (e.g. "mp4", "webm", "mov", "avi")
   format?: string
+  // optional maximum resolution: "best" (default), "2160p" ... "360p"
+  resolution?: string
 }
 
 // --- Responses ---

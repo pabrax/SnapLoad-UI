@@ -1,9 +1,8 @@
-export const QUALITY_OPTIONS = [
-  { value: "96", label: "96 kbps", description: "Baja calidad" },
-  { value: "128", label: "128 kbps", description: "Calidad estándar" },
-  { value: "192", label: "192 kbps", description: "Alta calidad" },
-  { value: "320", label: "320 kbps", description: "Máxima calidad" },
-] as const
+import { AUDIO_BITRATE_OPTIONS, AUDIO_FORMAT_OPTIONS, DEFAULT_AUDIO_FORMAT } from "@/src/lib/media-options"
+
+export const QUALITY_OPTIONS = AUDIO_BITRATE_OPTIONS
+export const AUDIO_FORMATS = AUDIO_FORMAT_OPTIONS
+export { DEFAULT_AUDIO_FORMAT }
 
 export const DEFAULT_QUALITY = "192"
 

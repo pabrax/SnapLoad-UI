@@ -9,7 +9,7 @@ interface UseAudioDownloadReturn {
   isPlaylistPolling: boolean
   overrideFiles: ProducedFile[]
   overrideJobId: string | null
-  handlePlaylistDownload: (url: string, quality: string) => Promise<boolean>
+  handlePlaylistDownload: (url: string, quality: string, format: string) => Promise<boolean>
   cancelPlaylistDownload: () => Promise<void>
   resetPlaylistState: () => void
 }
@@ -27,7 +27,7 @@ export function useAudioDownload(): UseAudioDownloadReturn {
   const { toast } = useToast()
   const { handleError } = useErrorHandler()
 
-  const handlePlaylistDownload = async (url: string, quality: string) => {
+  const handlePlaylistDownload = async (url: string, quality: string, format: string) => {
     if (!isPlaylistUrl(url)) {
       return false
     }
@@ -36,7 +36,7 @@ export function useAudioDownload(): UseAudioDownloadReturn {
       setIsPlaylistPolling(true)
       pollingStoppedRef.current = false
       
-      const jobId = await enqueueDownload(url, { quality })
+      const jobId = await enqueueDownload(url, { kind: "audio", quality, format })
       currentJobIdRef.current = jobId
 
       await pollJobStatus({

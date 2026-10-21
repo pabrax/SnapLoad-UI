@@ -13,7 +13,7 @@ export interface UseDownloadProgressResult {
   downloadId: string | null
   producedFiles: Array<{ name: string; size_bytes?: number }>
   fileDownloaded: boolean
-  startDownload: (url: string, quality?: string) => Promise<boolean>
+  startDownload: (url: string, quality?: string, format?: string) => Promise<boolean>
   cancelDownload: () => void
   resetProgressState: () => void
   clearError: () => void
@@ -98,7 +98,7 @@ export function useDownloadProgress(): UseDownloadProgressResult {
     setDownloadId(null)
   }, [downloadId, toast])
 
-  const startDownload = useCallback(async (url: string, quality = "192"): Promise<boolean> => {
+  const startDownload = useCallback(async (url: string, quality = "192", format = "mp3"): Promise<boolean> => {
     try {
       setError(null)
       setIsLoading(true)
@@ -112,6 +112,7 @@ export function useDownloadProgress(): UseDownloadProgressResult {
       const downloadRequest: DownloadRequest = {
         url,
         quality,
+        format,
       }
 
       const response = await fetch("/api/download-with-progress", {
