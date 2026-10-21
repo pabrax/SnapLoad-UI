@@ -9,7 +9,7 @@ interface UseVideoDownloadReturn {
   files: VideoFile[]
   jobId: string | null
   errorMsg: string | null
-  handleVideoDownload: (url: string, format: string) => Promise<void>
+  handleVideoDownload: (url: string, format: string, resolution?: string) => Promise<void>
   cancelVideoDownload: () => Promise<void>
   resetVideoState: () => void
 }
@@ -26,7 +26,7 @@ export function useVideoDownload(): UseVideoDownloadReturn {
   const pollingStoppedRef = useRef(false)
   const { toast } = useToast()
 
-  const handleVideoDownload = async (url: string, format: string): Promise<void> => {
+  const handleVideoDownload = async (url: string, format: string, resolution = "best"): Promise<void> => {
     setErrorMsg(null)
     setFiles([])
     setJobId(null)
@@ -44,7 +44,7 @@ export function useVideoDownload(): UseVideoDownloadReturn {
       const resp = await fetch("/api/download-video", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, format }),
+        body: JSON.stringify({ url, format, resolution }),
       })
       
       if (!resp.ok) throw new Error("Error encolar job")

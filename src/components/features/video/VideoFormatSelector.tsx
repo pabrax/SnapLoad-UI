@@ -20,7 +20,10 @@ export function VideoFormatSelector({ value, onChange, disabled = false }: Video
         <SelectContent>
           {VIDEO_FORMATS.map((option) => (
             <SelectItem key={option.value} value={option.value}>
-              <span className="font-medium">{option.label}</span>
+              <div className="flex items-center justify-between w-full">
+                <span className="font-medium">{option.label}</span>
+                <span className="text-sm text-muted-foreground ml-2">{option.description}</span>
+              </div>
             </SelectItem>
           ))}
         </SelectContent>
