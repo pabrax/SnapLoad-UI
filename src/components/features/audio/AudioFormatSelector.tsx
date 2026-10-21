@@ -8,7 +8,7 @@ interface AudioFormatSelectorProps {
   disabled?: boolean
 }
 
-const OPTIONS = AUDIO_FORMATS.map((f) => ({ value: f.value, label: `${f.label} · ${f.description}` }))
+const OPTIONS = AUDIO_FORMATS.map((f) => ({ value: f.value, label: f.label }))
 
 export function AudioFormatSelector({ value, onChange, disabled = false }: AudioFormatSelectorProps) {
   return (
@@ -19,6 +19,7 @@ export function AudioFormatSelector({ value, onChange, disabled = false }: Audio
       onValueChange={onChange}
       options={OPTIONS}
       disabled={disabled}
+      hint={AUDIO_FORMATS.find((f) => f.value === value)?.description}
     />
   )
 }

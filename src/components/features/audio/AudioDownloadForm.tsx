@@ -278,7 +278,7 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
         <Button
           type="submit"
           disabled={isDownloading || backendStatus !== "connected"}
-          className="w-full h-12 text-base font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-teal-600 hover:opacity-90 transition-opacity shadow-lg shadow-blue-500/30"
+          className="w-full h-12 text-base font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-teal-700 text-white hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring transition-opacity shadow-lg shadow-blue-500/30"
           size="lg"
         >
           {isDownloading ? (
