@@ -135,34 +135,6 @@ export function isYouTubeVideoUrl(input: string): boolean {
   )
 }
 
-export function isValidBitrate(quality: string | null | undefined): boolean {
-  if (!quality) return false
-
-  const lower = quality.toLowerCase()
-
-  if (lower === "0" || lower === "bestaudio") return true
-
-  // Numeric with optional 'k' suffix (e.g., "320", "320k")
-  const match = lower.match(/^(\d+)(k)?$/)
-  if (!match) return false
-
-  const value = parseInt(match[1], 10)
-  return value > 0 && value <= 500
-}
-
-export function validateQuality(quality: string | null | undefined): { valid: boolean; error?: string } {
-  if (!quality) return { valid: true }
-
-  if (!isValidBitrate(quality)) {
-    return {
-      valid: false,
-      error: "Calidad inválida; use '0', 'bestaudio' o valores numéricos como '320k' o '128'",
-    }
-  }
-
-  return { valid: true }
-}
-
 import { VALID_VIDEO_FORMATS } from "@/src/config/backend"
 import type { VideoFormat } from "@/src/config/backend"
 

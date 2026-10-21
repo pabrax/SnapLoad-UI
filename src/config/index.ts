@@ -20,8 +20,6 @@ export {
   isYouTubePlaylist,
   isValidContentUrl,
   sanitizeYouTubeUrl,
-  isValidBitrate,
-  validateQuality,
   isValidVideoFormat,
   validateVideoFormat,
   isAudioFile,
