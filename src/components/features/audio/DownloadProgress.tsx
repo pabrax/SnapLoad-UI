@@ -15,7 +15,7 @@ export function DownloadProgress({ isPlaylistPolling, progressStatus, pollingMes
   }
 
   return (
-    <div className="mt-4 p-4 bg-muted/20 border-2 border-muted rounded-lg backdrop-blur-sm">
+    <div className="mt-4 p-4 bg-muted/20 border-2 border-muted rounded-lg">
       <div className="flex items-center gap-2 mb-2">
         <span className="inline-block w-2 h-2 rounded-full bg-primary animate-pulse" />
         <span className="text-sm font-semibold">

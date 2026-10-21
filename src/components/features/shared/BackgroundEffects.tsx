@@ -1,17 +1,12 @@
+/**
+ * Fondo decorativo estático: dos gradientes radiales en una sola capa (sin blur ni animación,
+ * que son caros de pintar y no aportan información).
+ */
 export function BackgroundEffects() {
   return (
-    <>
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-950/20 via-purple-950/20 to-teal-950/20" />
-      
-      <div className="absolute top-32 left-16 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl glow-effect" />
-      <div
-        className="absolute bottom-20 right-16 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl glow-effect"
-        style={{ animationDelay: "1s" }}
-      />
-      <div
-        className="absolute top-1/2 left-1/3 w-24 h-24 bg-teal-500/10 rounded-full blur-3xl glow-effect"
-        style={{ animationDelay: "2s" }}
-      />
-    </>
+    <div
+      aria-hidden="true"
+      className="pointer-events-none absolute inset-0 bg-[radial-gradient(55%_45%_at_15%_8%,rgb(59_130_246/0.16),transparent),radial-gradient(50%_45%_at_88%_95%,rgb(147_51_234/0.14),transparent),radial-gradient(35%_30%_at_55%_50%,rgb(20_184_166/0.07),transparent)]"
+    />
   )
 }
