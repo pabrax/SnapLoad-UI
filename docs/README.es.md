@@ -355,11 +355,12 @@ docker run -p 3000:3000 \
 
 1. **Navegar a** `http://localhost:3000`
 2. **Ingresar URL**: Pegar URL de YouTube o Spotify
-3. **Seleccionar Calidad**: Elegir bitrate (128, 192, 256, 320 kbps)
-4. **Vista Previa de Info** (opcional): Hacer clic en el ícono de info para previsualizar metadatos
-5. **Descargar**: Hacer clic en "Descargar Ahora"
-6. **Seguir Progreso**: Ver actualizaciones de progreso en tiempo real
-7. **Descargar Archivos**: Una vez completado, descargar archivos individuales o archivo ZIP
+3. **Seleccionar Formato**: MP3, M4A, Opus, OGG, FLAC o WAV
+4. **Seleccionar Calidad**: Elegir bitrate (64-320 kbps o mejor). Se desactiva para Opus (se copia el stream original) y FLAC/WAV (sin pérdida)
+5. **Vista Previa de Info** (opcional): Hacer clic en el ícono de info para previsualizar metadatos
+6. **Descargar**: Hacer clic en "Descargar Ahora"
+7. **Seguir Progreso**: Ver actualizaciones de progreso en tiempo real
+8. **Descargar Archivos**: Una vez completado, descargar archivos individuales o archivo ZIP
 
 **URLs Soportadas:**
 - Video de YouTube: `https://www.youtube.com/watch?v=...`
@@ -372,8 +373,8 @@ docker run -p 3000:3000 \
 
 1. **Navegar a** la página `/video`
 2. **Ingresar URL**: Pegar URL de video de YouTube
-3. **Seleccionar Calidad**: Elegir resolución (480p, 720p, 1080p, 1440p, 2160p)
-4. **Seleccionar Formato**: MP4 o WebM
+3. **Seleccionar Formato**: WebM, MP4, MKV, MOV o AVI
+4. **Seleccionar Resolución**: Mejor, 2160p ... 360p (MOV y AVI se limitan a 1080p)
 5. **Descargar**: Hacer clic en "Descargar Ahora"
 6. **Seguir Progreso**: Ver actualizaciones de estado
 7. **Descargar Archivo**: Descargar cuando esté listo

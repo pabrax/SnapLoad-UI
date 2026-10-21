@@ -406,11 +406,12 @@ pnpm build
 
 1. **Navigate to** `http://localhost:3000`
 2. **Enter URL**: Paste YouTube or Spotify URL
-3. **Select Quality**: Choose bitrate (128, 192, 256, 320 kbps)
-4. **Preview Info** (optional): Click info icon to preview metadata
-5. **Download**: Click "Descargar Ahora"
-6. **Track Progress**: Watch real-time progress updates
-7. **Download Files**: Once complete, download individual files or ZIP archive
+3. **Select Format**: MP3, M4A, Opus, OGG, FLAC or WAV
+4. **Select Quality**: Choose bitrate (64-320 kbps or best). It is disabled for Opus (original stream copied) and FLAC/WAV (lossless)
+5. **Preview Info** (optional): Click info icon to preview metadata
+6. **Download**: Click "Descargar Ahora"
+7. **Track Progress**: Watch real-time progress updates
+8. **Download Files**: Once complete, download individual files or ZIP archive
 
 **Supported URLs:**
 - YouTube video: `https://www.youtube.com/watch?v=...`
@@ -423,8 +424,8 @@ pnpm build
 
 1. **Navigate to** `/video` page
 2. **Enter URL**: Paste YouTube video URL
-3. **Select Quality**: Choose resolution (480p, 720p, 1080p, 1440p, 2160p)
-4. **Select Format**: MP4 or WebM
+3. **Select Format**: WebM, MP4, MKV, MOV or AVI
+4. **Select Resolution**: Best, 2160p ... 360p (MOV and AVI are limited to 1080p)
 5. **Download**: Click "Descargar Ahora"
 6. **Track Progress**: Watch status updates
 7. **Download File**: Download when ready
