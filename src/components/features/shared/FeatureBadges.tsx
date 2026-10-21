@@ -1,83 +1,55 @@
-import { Github, Info } from "lucide-react"
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/src/components/ui/tooltip"
+import { Github } from "lucide-react"
 import type { BackendStatus } from "@/src/types/api"
 
 interface FeatureBadgesProps {
   backendStatus?: BackendStatus
 }
 
-export function FeatureBadges({ backendStatus = "checking" }: FeatureBadgesProps) {
-  const getStatusStyles = () => {
-    switch (backendStatus) {
-      case "connected":
-        return "bg-emerald-500/20 border-emerald-500/40 text-emerald-300"
-      case "disconnected":
-        return "bg-red-500/20 border-red-500/40 text-red-300"
-      default:
-        return "bg-yellow-500/20 border-yellow-500/40 text-yellow-300"
-    }
-  }
+const STATUS_VIEW: Record<string, { label: string; dot: string; chip: string }> = {
+  connected: {
+    label: "Servidor conectado",
+    dot: "bg-emerald-400",
+    chip: "border-emerald-500/40 bg-emerald-500/10 text-emerald-200",
+  },
+  disconnected: {
+    label: "Servidor desconectado",
+    dot: "bg-red-400",
+    chip: "border-red-500/40 bg-red-500/10 text-red-200",
+  },
+  unknown: {
+    label: "Verificando servidor…",
+    dot: "bg-amber-400 animate-pulse",
+    chip: "border-amber-500/40 bg-amber-500/10 text-amber-200",
+  },
+}
 
-  const getStatusText = () => {
-    switch (backendStatus) {
-      case "connected":
-        return "🟢 Conectado"
-      case "disconnected":
-        return "🔴 Desconectado"
-      default:
-        return "🟡 Verificando..."
-    }
-  }
+export function FeatureBadges({ backendStatus = "unknown" }: FeatureBadgesProps) {
+  const view = STATUS_VIEW[backendStatus] ?? STATUS_VIEW.unknown
 
   return (
     <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
-      <div className={`px-3 py-1.5 ${getStatusStyles()} border rounded-full backdrop-blur-sm`}>
-        <p className="text-xs font-bold">{getStatusText()}</p>
-      </div>
-      <div className="px-3 py-1.5 bg-primary/20 border border-primary/40 rounded-full backdrop-blur-sm">
-        <p className="text-xs font-bold text-primary">YouTube • Spotify</p>
-      </div>
-      <div className="px-3 py-1.5 bg-secondary/20 border border-secondary/40 rounded-full backdrop-blur-sm">
-        <p className="text-xs font-bold text-secondary">Audio & Video HD</p>
-      </div>
-      <div className="px-3 py-1.5 bg-accent/20 border border-accent/40 rounded-full backdrop-blur-sm">
-        <p className="text-xs font-bold text-accent">100% Seguro</p>
-      </div>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="px-3 py-1.5 bg-amber-500/20 border border-amber-500/40 rounded-full backdrop-blur-sm cursor-help hover:bg-amber-500/30 transition-colors">
-              <div className="flex items-center gap-1.5">
-                <Info className="w-3 h-3 text-amber-400" />
-                <p className="text-xs font-bold text-amber-300">Uso Educativo</p>
-              </div>
-            </div>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="max-w-xs">
-            <p className="text-xs leading-relaxed">
-              Software educativo de código abierto. El usuario es responsable de cumplir 
-              con leyes y Términos de Servicio. No alojamos ni distribuimos contenido protegido.
-            </p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      <a 
-        href="https://github.com/pabrax/SnapLoad" 
-        target="_blank" 
-        rel="noopener noreferrer"
-        className="px-3 py-1.5 bg-slate-700/40 border border-slate-500/40 rounded-full backdrop-blur-sm hover:bg-slate-600/50 transition-colors cursor-pointer group"
+      <p
+        role="status"
+        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${view.chip}`}
       >
-        <div className="flex items-center gap-1.5">
-          <Github className="w-3 h-3 text-slate-300 group-hover:text-white transition-colors" />
-          <p className="text-xs font-bold text-slate-300 group-hover:text-white transition-colors">
-            Github
-          </p>
-        </div>
+        <span aria-hidden="true" className={`h-2 w-2 rounded-full ${view.dot}`} />
+        {view.label}
+      </p>
+      <p className="rounded-full border border-surface-border bg-surface px-3 py-1.5 text-xs font-semibold text-slate-200">
+        YouTube y Spotify
+      </p>
+      <p className="rounded-full border border-surface-border bg-surface px-3 py-1.5 text-xs font-semibold text-slate-200">
+        Audio y video hasta 4K
+      </p>
+      <a
+        href="https://github.com/pabrax/SnapLoad"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-surface-border bg-surface px-4 text-xs font-semibold text-slate-200 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+      >
+        <Github aria-hidden="true" className="h-4 w-4" />
+        GitHub
+        <span className="sr-only">(se abre en una pestaña nueva)</span>
       </a>
     </div>
   )

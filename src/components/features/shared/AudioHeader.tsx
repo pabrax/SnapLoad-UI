@@ -3,7 +3,7 @@ import { Disc3, Waves, Music } from "lucide-react"
 export function AudioHeader() {
   return (
     <div className="text-center mb-8">
-      <div className="inline-flex items-center gap-3 mb-4 float-animation">
+      <div className="inline-flex items-center gap-3 mb-4" aria-hidden="true">
         <Disc3 className="w-10 h-10 text-blue-400" strokeWidth={2} />
         <Waves className="w-10 h-10 text-purple-400" strokeWidth={2} />
         <Music className="w-10 h-10 text-teal-400" strokeWidth={2} />

@@ -10,7 +10,7 @@ export function DownloadError({ error, onClose }: DownloadErrorProps) {
   if (!error) return null
 
   return (
-    <div className="mt-4 p-4 bg-destructive/15 border-2 border-destructive rounded-lg flex items-start gap-3 backdrop-blur-sm">
+    <div className="mt-4 p-4 bg-destructive/15 border-2 border-destructive rounded-lg flex items-start gap-3">
       <AlertCircle className="w-5 h-5 text-destructive flex-shrink-0 mt-0.5" />
       <div className="flex-1">
         <p className="text-sm font-bold text-destructive">Error</p>

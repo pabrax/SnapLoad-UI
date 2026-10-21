@@ -40,7 +40,7 @@ export function DownloadSuccess({
   if (isSingleFile) {
     // Canción individual
     return (
-      <div className="mt-4 p-4 bg-primary/15 border-2 border-primary rounded-lg backdrop-blur-sm">
+      <div className="mt-4 p-4 bg-primary/15 border-2 border-primary rounded-lg">
         <div className="flex items-start gap-3">
           <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
           <div className="flex-1">
@@ -104,7 +104,7 @@ export function DownloadSuccess({
   }
 
   return (
-    <div className="mt-4 p-4 bg-primary/15 border-2 border-primary rounded-lg backdrop-blur-sm space-y-3">
+    <div className="mt-4 p-4 bg-primary/15 border-2 border-primary rounded-lg space-y-3">
       <div className="flex items-start gap-3">
         <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
         <div className="flex-1">

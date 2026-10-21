@@ -1,8 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { GeistSans } from 'geist/font/sans'
-import { GeistMono } from 'geist/font/mono'
 import { Analytics } from '@vercel/analytics/next'
-import { Toaster } from '@/src/components/ui/toaster'
+import { LazyToaster } from '@/src/components/ui/lazy-toaster'
 import '../src/styles/globals.css'
 
 export const metadata: Metadata = {
@@ -29,7 +28,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={`font-sans ${GeistSans.variable} ${GeistMono.variable}`}>
+      <body className={`font-sans ${GeistSans.variable}`}>
         <a
           href="#contenido"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
@@ -37,7 +36,7 @@ export default function RootLayout({
           Saltar al contenido
         </a>
         {children}
-        <Toaster />
+        <LazyToaster />
         {analyticsEnabled && <Analytics />}
       </body>
     </html>
