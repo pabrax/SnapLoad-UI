@@ -7,7 +7,7 @@ interface VideoFormatSelectorProps {
   disabled?: boolean
 }
 
-const OPTIONS = VIDEO_FORMATS.map((f) => ({ value: f.value, label: `${f.label} · ${f.description}` }))
+const OPTIONS = VIDEO_FORMATS.map((f) => ({ value: f.value, label: f.label }))
 
 export function VideoFormatSelector({ value, onChange, disabled = false }: VideoFormatSelectorProps) {
   return (
@@ -17,6 +17,7 @@ export function VideoFormatSelector({ value, onChange, disabled = false }: Video
       onValueChange={onChange}
       options={OPTIONS}
       disabled={disabled}
+      hint={VIDEO_FORMATS.find((f) => f.value === value)?.description}
     />
   )
 }
