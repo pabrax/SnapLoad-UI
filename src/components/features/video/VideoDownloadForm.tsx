@@ -124,7 +124,12 @@ export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormPr
           </label>
           <Input
             id="video-url"
-            type="url"
+            type="text"
+            inputMode="url"
+            autoComplete="off"
+            spellCheck={false}
+            aria-invalid={Boolean(urlError)}
+            aria-describedby={urlError ? "video-url-error" : undefined}
             placeholder="Ej: https://www.youtube.com/watch?v=..."
             value={url}
             onChange={(e) => handleUrlChange(e.target.value)}
@@ -134,7 +139,7 @@ export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormPr
             }`}
           />
           {urlError && (
-            <p className="text-sm text-destructive mt-1">{urlError}</p>
+            <p id="video-url-error" role="alert" className="text-sm text-red-300 mt-1">{urlError}</p>
           )}
         </div>
 

@@ -228,7 +228,11 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
           <div className="relative">
             <Input
               id="url"
-              type="url"
+              type="text"
+              inputMode="url"
+              autoComplete="off"
+              spellCheck={false}
+              aria-invalid={Boolean(url && !validateUrl(url))}
               placeholder={FORM_LABELS.URL_INPUT.PLACEHOLDER_AUDIO}
               value={url}
               onChange={(e) => setUrl(e.target.value)}
@@ -241,13 +245,15 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
                 variant="ghost"
                 size="sm"
                 onClick={handleGetInfo}
+                aria-label="Ver información de la canción o video"
+                title="Ver información"
                 disabled={status === "info-loading" || isLoading}
-                className="absolute right-2 top-2 h-8 px-3"
+                className="absolute right-1 top-1 h-10 min-w-10 px-3"
               >
                 {status === "info-loading" ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <Loader2 aria-hidden="true" className="w-4 h-4 animate-spin" />
                 ) : (
-                  <Info className="w-4 h-4" />
+                  <Info aria-hidden="true" className="w-4 h-4" />
                 )}
               </Button>
             )}

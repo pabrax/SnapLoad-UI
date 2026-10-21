@@ -64,6 +64,8 @@ export function FileDownloadActions({
                     size="sm"
                     variant="ghost"
                     onClick={() => handleDownloadFile(file.name)}
+                    aria-label={`Descargar ${file.name}`}
+                    className="min-h-10"
                   >
                     Descargar
                   </Button>

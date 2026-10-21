@@ -12,9 +12,9 @@ export function VideoDownloadSuccess({ files, jobId, onClean }: VideoDownloadSuc
   if (!files.length) return null
 
   return (
-    <div className="mt-4 p-4 bg-primary/15 border-2 border-primary rounded-lg space-y-3">
+    <div role="status" className="mt-4 p-4 bg-primary/15 border border-primary rounded-lg space-y-3">
       <div className="flex items-start gap-3">
-        <CheckCircle2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+        <CheckCircle2 aria-hidden="true" className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
         <div className="flex-1">
           <p className="text-sm font-bold text-primary mb-1">¡Descarga de video lista!</p>
           <p className="text-xs text-primary/80 mb-2">
