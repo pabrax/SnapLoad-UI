@@ -6,8 +6,8 @@
 // ============================================================================
 // File Extensions (matches Settings.AUDIO_EXTENSIONS, VIDEO_EXTENSIONS)
 // ============================================================================
-export const AUDIO_EXTENSIONS = [".mp3", ".m4a", ".flac", ".wav", ".aac", ".ogg"] as const
-export const VIDEO_EXTENSIONS = [".webm", ".mp4", ".mkv"] as const
+export const AUDIO_EXTENSIONS = [".mp3", ".m4a", ".flac", ".wav", ".aac", ".ogg", ".opus"] as const
+export const VIDEO_EXTENSIONS = [".webm", ".mp4", ".mkv", ".mov", ".avi"] as const
 
 export type AudioExtension = typeof AUDIO_EXTENSIONS[number]
 export type VideoExtension = typeof VIDEO_EXTENSIONS[number]
@@ -15,7 +15,7 @@ export type VideoExtension = typeof VIDEO_EXTENSIONS[number]
 // ============================================================================
 // Valid Formats (matches Settings.VALID_VIDEO_FORMATS)
 // ============================================================================
-export const VALID_VIDEO_FORMATS = ["webm", "mp4", "mkv"] as const
+export const VALID_VIDEO_FORMATS = ["webm", "mp4", "mkv", "mov", "avi"] as const
 export type VideoFormat = typeof VALID_VIDEO_FORMATS[number]
 
 // ============================================================================

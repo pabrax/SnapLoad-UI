@@ -5,12 +5,14 @@ import { Download, Loader2 } from "lucide-react"
 import { Button } from "@/src/components/ui/button"
 import { Input } from "@/src/components/ui/input"
 import { VideoFormatSelector } from "./VideoFormatSelector"
+import { VideoResolutionSelector } from "./VideoResolutionSelector"
 import { VideoDownloadSuccess } from "./VideoDownloadSuccess"
 import { DownloadError } from "@/src/components/features/audio/DownloadError"
 import { DownloadProgress } from "@/src/components/features/audio/DownloadProgress"
 import { useVideoDownload } from "@/src/hooks/use-video-download"
 import { isYouTubeVideoUrl, sanitizeYouTubeUrl } from "@/src/lib/validators"
-import { DEFAULT_VIDEO_FORMAT } from "@/src/constants/video"
+import { DEFAULT_VIDEO_FORMAT, DEFAULT_VIDEO_RESOLUTION } from "@/src/constants/video"
+import { clampResolution } from "@/src/lib/media-options"
 import { useToast } from "@/src/hooks/use-toast"
 import type { BackendStatus } from "@/src/types/api"
 
@@ -20,7 +22,8 @@ interface VideoDownloadFormProps {
 
 export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormProps) {
   const [url, setUrl] = useState("")
-  const [format, setFormat] = useState(DEFAULT_VIDEO_FORMAT)
+  const [format, setFormat] = useState<string>(DEFAULT_VIDEO_FORMAT)
+  const [resolution, setResolution] = useState<string>(DEFAULT_VIDEO_RESOLUTION)
   const [urlError, setUrlError] = useState<string | null>(null)
   const [componentStatus, setComponentStatus] = useState<'idle' | 'success' | 'error'>('idle')
   const { toast } = useToast()
@@ -68,6 +71,12 @@ export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormPr
     }
   }
 
+  const handleFormatChange = (value: string) => {
+    setFormat(value)
+    // mov/avi no admiten más de 1080p: baja la resolución elegida si ya no está disponible
+    setResolution((current) => clampResolution(value, current))
+  }
+
   const handleSubmit = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault()
     
@@ -94,7 +103,7 @@ export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormPr
       return
     }
     
-    await handleVideoDownload(finalUrl, format)
+    await handleVideoDownload(finalUrl, format, resolution)
   }
 
   const handleCleanup = () => {
@@ -129,10 +138,17 @@ export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormPr
           )}
         </div>
 
-        <VideoFormatSelector 
-          value={format} 
-          onChange={setFormat} 
-          disabled={isDownloading} 
+        <VideoFormatSelector
+          value={format}
+          onChange={handleFormatChange}
+          disabled={isDownloading}
+        />
+
+        <VideoResolutionSelector
+          value={resolution}
+          format={format}
+          onChange={setResolution}
+          disabled={isDownloading}
         />
 
         <Button

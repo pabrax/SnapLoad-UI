@@ -3,7 +3,7 @@ import { backendUrl } from "@/src/lib/backend"
 
 export async function POST(request: NextRequest) {
   try {
-    const { url, format } = await request.json()
+    const { url, format, resolution } = await request.json()
 
     if (!url) {
       return NextResponse.json({ error: "URL es requerida" }, { status: 400 })
@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
       lookupParams.set('url', url)
       lookupParams.set('type', 'video')
       if (format) lookupParams.set('format', format)
+      if (resolution) lookupParams.set('resolution', resolution)
       
       console.log('[VIDEO-PROXY] Lookup params:', { url, format, lookupUrl: `/lookup?${lookupParams.toString()}` })
       
@@ -65,7 +66,7 @@ export async function POST(request: NextRequest) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ url, format }),
+        body: JSON.stringify({ url, format, resolution }),
         signal: controller.signal,
       })
 
