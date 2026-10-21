@@ -20,7 +20,7 @@ export default function MusicDownloader() {
   const isDialogOpen = backendStatus === 'disconnected' && !dialogDismissed
 
   return (
-    <main className="min-h-screen relative overflow-hidden flex flex-col items-center justify-center p-6 md:p-8 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <main id="contenido" tabIndex={-1} className="min-h-screen relative overflow-hidden flex flex-col items-center justify-center p-6 md:p-8 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <BackgroundEffects />
 
       <BackendDisconnectedDialog 
