@@ -102,14 +102,15 @@ export async function pollJobStatus(config: PollingConfig): Promise<void> {
 
 export async function enqueueDownload(
   url: string,
-  options: { quality?: string; format?: string }
+  options: { kind?: "audio" | "video"; quality?: string; format?: string; resolution?: string }
 ): Promise<string> {
-  const endpoint = options.format ? "/api/download-video" : "/api/download-with-progress"
+  const { kind = "audio", ...params } = options
+  const endpoint = kind === "video" ? "/api/download-video" : "/api/download-with-progress"
   
   const response = await fetch(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ url, ...options }),
+    body: JSON.stringify({ url, ...params }),
   })
   
   if (!response.ok) {

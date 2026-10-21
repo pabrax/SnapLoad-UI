@@ -11,12 +11,13 @@ import { useAudioDownload } from "@/src/hooks/use-audio-download"
 import { usePlaylistPolling } from "@/src/hooks/use-playlist-polling"
 import { AudioInfoPreview } from "./AudioInfoPreview"
 import { QualitySelector } from "./QualitySelector"
+import { AudioFormatSelector } from "./AudioFormatSelector"
 import { DownloadProgress } from "./DownloadProgress"
 import { DownloadSuccess } from "./DownloadSuccess"
 import { DownloadError } from "./DownloadError"
 import { isPlaylistUrl } from "@/src/lib/utils/download-helpers"
 import { isValidContentUrl, sanitizeYouTubeUrl } from "@/src/lib/validators"
-import { DEFAULT_QUALITY } from "@/src/constants/audio"
+import { DEFAULT_QUALITY, DEFAULT_AUDIO_FORMAT } from "@/src/constants/audio"
 import { FORM_LABELS, BUTTON_LABELS, DOWNLOAD_MESSAGES, TOAST_MESSAGES } from "@/src/constants/messages"
 import { useToast } from "@/src/hooks/use-toast"
 import type { AudioInfoResponse, DownloadStatus, BackendStatus } from "@/src/types/api"
@@ -28,9 +29,11 @@ interface AudioDownloadFormProps {
 export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormProps) {
   const [url, setUrl] = useState("")
   const [quality, setQuality] = useState(DEFAULT_QUALITY)
+  const [format, setFormat] = useState<string>(DEFAULT_AUDIO_FORMAT)
   const [status, setStatus] = useState<DownloadStatus>("idle")
   const [audioInfo, setAudioInfo] = useState<AudioInfoResponse | null>(null)
   const [resultQuality, setResultQuality] = useState<string | null>(null)
+  const [resultFormat, setResultFormat] = useState<string | null>(null)
   const { toast } = useToast()
 
   const { isLoading, error, getAudioInfo, clearError } = useDownload()
@@ -149,17 +152,18 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
     resetPlaylistState()
     
     setResultQuality(quality)
+    setResultFormat(format)
 
     if (isPlaylistUrl(finalUrl)) {
       try {
-        await handlePlaylistDownload(finalUrl, quality)
+        await handlePlaylistDownload(finalUrl, quality, format)
         setStatus('success')
       } catch (err) {
         console.error('Playlist download error', err)
         setStatus('error')
       }
     } else {
-      const started = await startProgressDownload(finalUrl, quality)
+      const started = await startProgressDownload(finalUrl, quality, format)
       if (!started) { 
         setStatus("error") 
       } else { 
@@ -173,6 +177,7 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
     setUrl('')
     setAudioInfo(null)
     setResultQuality(null)
+    setResultFormat(null)
     
     resetPlaylistState()
     resetProgressState()
@@ -251,10 +256,17 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
 
         <AudioInfoPreview audioInfo={audioInfo} />
 
-        <QualitySelector 
-          value={quality} 
-          onChange={setQuality} 
-          disabled={isLoading} 
+        <AudioFormatSelector
+          value={format}
+          onChange={setFormat}
+          disabled={isLoading}
+        />
+
+        <QualitySelector
+          value={quality}
+          format={format}
+          onChange={setQuality}
+          disabled={isLoading}
         />
 
         <Button
@@ -306,6 +318,7 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
           files={files}
           jobId={jobId}
           quality={resultQuality ?? quality}
+          format={resultFormat ?? format}
           audioInfo={audioInfo}
           fileDownloaded={fileDownloaded}
           onClean={handleCleanup}

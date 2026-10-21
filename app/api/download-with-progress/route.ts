@@ -3,7 +3,7 @@ import { backendUrl } from "@/src/lib/backend"
 
 export async function POST(request: NextRequest) {
   try {
-    const { url, quality = "192", output_format = "mp3" } = await request.json()
+    const { url, quality = "192", format = "mp3" } = await request.json()
 
     if (!url) {
       return NextResponse.json({ error: "URL es requerida" }, { status: 400 })
@@ -20,6 +20,7 @@ export async function POST(request: NextRequest) {
       lookupParams.set('url', url)
       lookupParams.set('type', 'audio')
       if (quality) lookupParams.set('quality', String(quality))
+      if (format) lookupParams.set('format', String(format))
       const lookupRes = await fetch(backendUrl(`/lookup?${lookupParams.toString()}`), { method: 'GET', signal: controller.signal })
       const lookup = await lookupRes.json().catch(() => ({}))
       if (lookupRes.ok && lookup?.status === 'ready' && Array.isArray(lookup.files)) {
@@ -49,7 +50,7 @@ export async function POST(request: NextRequest) {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ url, quality, output_format }),
+        body: JSON.stringify({ url, quality, format }),
         signal: controller.signal,
       })
 
