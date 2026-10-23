@@ -92,6 +92,28 @@ export interface AudioInfoResponse {
   error?: string
 }
 
+// --- Music library (GET /library/tracks) ---
+export interface LibraryTrack {
+  id: string
+  title: string | null
+  artist: string | null
+  album: string | null
+  duration_s: number | null
+  format: string | null
+  size_bytes: number
+  has_cover: boolean
+  // protected from the automatic cleanup
+  kept: boolean
+}
+
+export interface LibraryListResponse {
+  tracks: LibraryTrack[]
+  total: number
+  limit: number
+  offset: number
+  kept_bytes: number
+}
+
 // UI-specific types
 export type DownloadStatus = "idle" | "loading" | "success" | "error" | "info-loading"
 
