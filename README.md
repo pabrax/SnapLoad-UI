@@ -59,6 +59,7 @@ This will install and run both the web interface and the API together. **[See fu
 - 📊 **Real-Time Progress**: Live status updates with polling
 - 🎵 **Multi-Platform Support**: YouTube (video/audio), Spotify (tracks/albums/playlists)
 - 📦 **Bulk Downloads**: Handle playlists and albums with multiple files
+- 🎧 **Library & Player**: A *Library* tab lists downloaded songs (`/api/library`), and a persistent player bar keeps playing across tabs. Audio streams through `/api/library/{id}/stream`, which forwards `Range` so seeking works. Shortcuts: `space` play/pause, `n` next, `p` previous, `m` mute (ignored while typing). Opus/Ogg may not play on Safari
 - 🎨 **Modern UI**: Dark mode, responsive design, smooth animations
 - 🔔 **User Feedback**: Toast notifications and error handling
 - 📱 **Mobile-First**: Optimized for all screen sizes

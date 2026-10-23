@@ -47,6 +47,7 @@
 - 📊 **Progreso en Tiempo Real**: Actualizaciones de estado en vivo con polling
 - 🎵 **Soporte Multi-Plataforma**: YouTube (video/audio), Spotify (tracks/álbumes/playlists)
 - 📦 **Descargas Masivas**: Maneja playlists y álbumes con múltiples archivos
+- 🎧 **Biblioteca y Reproductor**: Una pestaña *Biblioteca* lista las canciones descargadas (`/api/library`) y una barra de reproducción persistente sigue sonando al cambiar de pestaña. El audio se sirve por `/api/library/{id}/stream`, que reenvía `Range` para poder hacer seek. Atajos: `espacio` reproducir/pausar, `n` siguiente, `p` anterior, `m` silenciar (se ignoran al escribir). Opus/Ogg puede no reproducirse en Safari
 - 🎨 **UI Moderna**: Modo oscuro, diseño responsivo, animaciones suaves
 - 🔔 **Feedback al Usuario**: Notificaciones toast y manejo de errores
 - 📱 **Mobile-First**: Optimizado para todos los tamaños de pantalla
