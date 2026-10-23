@@ -6,6 +6,7 @@ import { clampSeek, createPlayerReducer, currentTrack, initialPlayerState, type 
 import { streamUrl } from "@/src/lib/library-client"
 import { mimeForFormat, trackRow } from "@/src/lib/library-view"
 import { browserStorage, loadPrefs, savePrefs } from "@/src/lib/player-prefs"
+import { PlayerIntegration } from "./PlayerIntegration"
 
 // Below this many seconds "previous" goes to the previous track; beyond it, it restarts the current one.
 const RESTART_THRESHOLD_S = 3
@@ -199,6 +200,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
           if (Number.isFinite(d) && d > 0) setDuration(d)
         }}
       />
+      <PlayerIntegration />
       <div role="status" aria-live="polite" className="sr-only">
         {announcement}
       </div>
