@@ -124,7 +124,7 @@ export interface ProducedFile {
 
 export type BackendStatus = "unknown" | "connected" | "disconnected"
 
-export type TabType = "audio" | "video"
+export type TabType = "audio" | "video" | "library"
 
 // Video-specific types
 export type VideoJobStatus = "idle" | "loading" | "success" | "error" | "polling"

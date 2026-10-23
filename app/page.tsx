@@ -18,6 +18,7 @@ const BackendDisconnectedDialog = dynamic(
   { ssr: false },
 )
 const VideoDownloader = dynamic(() => import("@/src/components/features/video-downloader"))
+const LibraryPanel = dynamic(() => import("@/src/components/features/library/LibraryPanel"))
 
 export default function MusicDownloader() {
   const [tab, setTab] = useState<TabType>('audio')
@@ -46,11 +47,9 @@ export default function MusicDownloader() {
 
         <Card className="relative p-6 md:p-8 bg-surface border border-surface-border shadow-xl shadow-black/30">
           <div role="tabpanel" id={panelId(tab)} aria-labelledby={tabId(tab)} className="relative">
-            {tab === 'audio' ? (
-              <AudioDownloadForm backendStatus={backendStatus} />
-            ) : (
-              <VideoDownloader noCard backendStatus={backendStatus} />
-            )}
+            {tab === 'audio' && <AudioDownloadForm backendStatus={backendStatus} />}
+            {tab === 'video' && <VideoDownloader noCard backendStatus={backendStatus} />}
+            {tab === 'library' && <LibraryPanel onGoToDownloads={() => setTab('audio')} />}
           </div>
         </Card>
 

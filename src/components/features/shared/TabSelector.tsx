@@ -12,6 +12,7 @@ interface TabSelectorProps {
 const TABS: ReadonlyArray<{ id: TabType; label: string; active: string }> = [
   { id: "audio", label: "Audio", active: "bg-gradient-to-r from-blue-600 to-purple-600 text-white" },
   { id: "video", label: "Video", active: "bg-gradient-to-r from-teal-600 to-cyan-600 text-white" },
+  { id: "library", label: "Biblioteca", active: "bg-gradient-to-r from-purple-600 to-pink-600 text-white" },
 ]
 
 export function tabId(tab: TabType) {
