@@ -186,7 +186,6 @@ export default function LibraryPanel({ onGoToDownloads }: LibraryPanelProps) {
                   <button
                     type="button"
                     onClick={() => player.playTracks(items, index)}
-                    aria-label={`Reproducir ${row.label}`}
                     aria-current={isCurrent ? "true" : undefined}
                     className={`flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-md px-2 text-left hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${isCurrent ? "bg-slate-800" : ""}`}
                   >
@@ -199,6 +198,8 @@ export default function LibraryPanel({ onGoToDownloads }: LibraryPanelProps) {
                       </span>
                     )}
                     <span className="min-w-0 flex-1">
+                      {/* The accessible name is built from the visible text (WCAG 2.5.3): "Reproducir Title Artist 3:35" */}
+                      <span className="sr-only">Reproducir </span>
                       <span className={`block truncate text-sm font-semibold ${isCurrent ? "text-blue-300" : "text-slate-100"}`}>{row.title}</span>
                       <span className="block truncate text-xs text-slate-300">{row.artist}</span>
                     </span>

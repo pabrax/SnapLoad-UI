@@ -3,7 +3,7 @@ import { GeistSans } from 'geist/font/sans'
 import { Analytics } from '@vercel/analytics/next'
 import { LazyToaster } from '@/src/components/ui/lazy-toaster'
 import { PlayerProvider } from '@/src/components/features/player/PlayerProvider'
-import { PlayerBar } from '@/src/components/features/player/PlayerBar'
+import { PlayerBarLoader } from '@/src/components/features/player/PlayerBarLoader'
 import '../src/styles/globals.css'
 
 export const metadata: Metadata = {
@@ -39,7 +39,7 @@ export default function RootLayout({
         </a>
         <PlayerProvider>
           {children}
-          <PlayerBar />
+          <PlayerBarLoader />
         </PlayerProvider>
         <LazyToaster />
         {analyticsEnabled && <Analytics />}

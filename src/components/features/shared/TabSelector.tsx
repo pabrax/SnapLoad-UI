@@ -35,7 +35,7 @@ export function TabSelector({ activeTab, onTabChange }: TabSelectorProps) {
   }
 
   return (
-    <div role="tablist" aria-label="Tipo de descarga" className="mb-4 flex items-center justify-center gap-3">
+    <div role="tablist" aria-label="Tipo de descarga" className="mb-4 flex items-center justify-center gap-2 sm:gap-3">
       {TABS.map((tab, index) => {
         const selected = tab.id === activeTab
         return (
@@ -52,7 +52,7 @@ export function TabSelector({ activeTab, onTabChange }: TabSelectorProps) {
             tabIndex={selected ? 0 : -1}
             onClick={() => onTabChange(tab.id)}
             onKeyDown={(e) => handleKeyDown(e, index)}
-            className={`min-h-11 min-w-24 rounded-full px-5 py-2 font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
+            className={`min-h-11 min-w-24 rounded-full px-4 py-2 font-semibold sm:px-5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${
               selected ? tab.active : "bg-slate-800 text-slate-200 hover:bg-slate-700"
             }`}
           >
