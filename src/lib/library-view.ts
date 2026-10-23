@@ -17,6 +17,20 @@ export interface TrackRow {
 const UNKNOWN_TITLE = "Sin título"
 const UNKNOWN_ARTIST = "Artista desconocido"
 
+// MIME types as the browser's canPlayType expects them (matches the API's stream Content-Type).
+const FORMAT_MIME: Record<string, string> = {
+  mp3: "audio/mpeg",
+  m4a: "audio/mp4",
+  ogg: "audio/ogg; codecs=vorbis",
+  opus: "audio/ogg; codecs=opus",
+  flac: "audio/flac",
+  wav: "audio/wav",
+}
+
+export function mimeForFormat(format: string | null | undefined): string | null {
+  return (format && FORMAT_MIME[format.toLowerCase()]) || null
+}
+
 export function formatDuration(seconds: number | null | undefined): string {
   if (typeof seconds !== "number" || !Number.isFinite(seconds) || seconds < 0) return "–"
   const total = Math.floor(seconds)

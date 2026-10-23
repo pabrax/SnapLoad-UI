@@ -46,3 +46,16 @@ test("rows fall back for missing tags and covers", () => {
   assert.equal(row.coverUrl, null)
   assert.equal(row.label, "Sin título")
 })
+
+test("each library format maps to a MIME type for canPlayType", async () => {
+  const { mimeForFormat } = await import("../src/lib/library-view.ts")
+  assert.equal(mimeForFormat("mp3"), "audio/mpeg")
+  assert.equal(mimeForFormat("m4a"), "audio/mp4")
+  assert.equal(mimeForFormat("ogg"), "audio/ogg; codecs=vorbis")
+  assert.equal(mimeForFormat("opus"), "audio/ogg; codecs=opus")
+  assert.equal(mimeForFormat("flac"), "audio/flac")
+  assert.equal(mimeForFormat("wav"), "audio/wav")
+  assert.equal(mimeForFormat("MP3"), "audio/mpeg")
+  assert.equal(mimeForFormat(null), null)
+  assert.equal(mimeForFormat("xyz"), null)
+})

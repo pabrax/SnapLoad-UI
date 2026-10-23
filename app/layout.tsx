@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { Analytics } from '@vercel/analytics/next'
 import { LazyToaster } from '@/src/components/ui/lazy-toaster'
+import { PlayerProvider } from '@/src/components/features/player/PlayerProvider'
+import { PlayerBar } from '@/src/components/features/player/PlayerBar'
 import '../src/styles/globals.css'
 
 export const metadata: Metadata = {
@@ -35,7 +37,10 @@ export default function RootLayout({
         >
           Saltar al contenido
         </a>
-        {children}
+        <PlayerProvider>
+          {children}
+          <PlayerBar />
+        </PlayerProvider>
         <LazyToaster />
         {analyticsEnabled && <Analytics />}
       </body>

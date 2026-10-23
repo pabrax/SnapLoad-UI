@@ -207,3 +207,14 @@ test("seek_clamps", () => {
   assert.equal(clampSeek(NaN, 100), 0)
   assert.equal(clampSeek(10, NaN), 0)
 })
+
+test("pause stops playback without changing the track and is idempotent", () => {
+  const reducer = createPlayerReducer()
+  const playing = run(reducer, initialPlayerState, { type: "play", queue: LIST, index: 1 })
+
+  const paused = reducer(playing, { type: "pause" })
+
+  assert.equal(paused.playing, false)
+  assert.equal(currentTrack(paused).id, "b")
+  assert.equal(reducer(paused, { type: "pause" }), paused)
+})

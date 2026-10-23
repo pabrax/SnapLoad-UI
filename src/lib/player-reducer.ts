@@ -27,6 +27,7 @@ export interface PlayerState {
 export type PlayerAction =
   | { type: "play"; queue: LibraryTrack[]; index: number }
   | { type: "toggle" }
+  | { type: "pause" }
   | { type: "next" }
   | { type: "prev" }
   | { type: "ended" }
@@ -111,6 +112,9 @@ export function createPlayerReducer(rng: () => number = Math.random) {
 
       case "toggle":
         return currentTrack(state) ? { ...state, playing: !state.playing } : state
+
+      case "pause":
+        return state.playing ? { ...state, playing: false } : state
 
       case "next": {
         const target = advance(state, state.repeat !== "off")
