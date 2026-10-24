@@ -8,18 +8,18 @@ interface FeatureBadgesProps {
 const STATUS_VIEW: Record<string, { label: string; dot: string; chip: string }> = {
   connected: {
     label: "Servidor conectado",
-    dot: "bg-emerald-400",
-    chip: "border-emerald-500/40 bg-emerald-500/10 text-emerald-200",
+    dot: "bg-mint",
+    chip: "border-mint/50 bg-mint/10 text-mint",
   },
   disconnected: {
     label: "Servidor desconectado",
-    dot: "bg-red-400",
-    chip: "border-red-500/40 bg-red-500/10 text-red-200",
+    dot: "bg-tomato",
+    chip: "border-tomato/50 bg-tomato/10 text-tomato",
   },
   unknown: {
     label: "Verificando servidor…",
-    dot: "bg-amber-400 animate-pulse",
-    chip: "border-amber-500/40 bg-amber-500/10 text-amber-200",
+    dot: "bg-sun animate-pulse",
+    chip: "border-sun/50 bg-sun/10 text-sun",
   },
 }
 
@@ -35,17 +35,17 @@ export function FeatureBadges({ backendStatus = "unknown" }: FeatureBadgesProps)
         <span aria-hidden="true" className={`h-2 w-2 rounded-full ${view.dot}`} />
         {view.label}
       </p>
-      <p className="rounded-full border border-surface-border bg-surface px-3 py-1.5 text-xs font-semibold text-slate-200">
+      <p className="rounded-full border border-surface-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">
         YouTube y Spotify
       </p>
-      <p className="rounded-full border border-surface-border bg-surface px-3 py-1.5 text-xs font-semibold text-slate-200">
+      <p className="rounded-full border border-surface-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground">
         Audio y video hasta 4K
       </p>
       <a
         href="https://github.com/pabrax/SnapLoad"
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-surface-border bg-surface px-4 text-xs font-semibold text-slate-200 transition-colors hover:bg-slate-800 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+        className="inline-flex min-h-11 items-center gap-2 rounded-full border border-surface-border bg-card px-4 text-xs font-semibold text-foreground transition-colors hover:bg-plum-raised hover:text-mode focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
       >
         <Github aria-hidden="true" className="h-4 w-4" />
         GitHub
