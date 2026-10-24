@@ -12,7 +12,7 @@ const REPEAT_LABEL: Record<RepeatMode, string> = {
 }
 
 const iconButton =
-  "inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-slate-200 transition-colors hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-40"
+  "inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-plum-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-40"
 
 /** Persistent player: visible while a track is loaded (or a playback error needs attention). */
 export function PlayerBar() {
@@ -32,10 +32,10 @@ export function PlayerBar() {
       <div aria-hidden="true" className="h-40 sm:h-28" />
       <section
         aria-label="Reproductor de música"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-700 bg-slate-900 px-4 pb-3 pt-2 text-slate-100"
+        className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-sun bg-plum-surface px-4 pb-3 pt-2 text-foreground"
       >
         {state.error && (
-          <div className="mb-2 flex items-center justify-between gap-2 rounded-md bg-red-950 px-3 py-2 text-sm text-red-100">
+          <div className="mb-2 flex items-center justify-between gap-2 rounded-xl border-2 border-dashed border-tomato bg-tomato/10 px-3 py-2 text-sm text-foreground">
             <span>{state.error}</span>
             <button type="button" onClick={player.dismissError} aria-label="Cerrar aviso" className={iconButton}>
               <X aria-hidden="true" className="size-4" />
@@ -48,19 +48,19 @@ export function PlayerBar() {
             <div className="flex min-w-0 items-center gap-3 sm:w-64 sm:shrink-0">
               {row.coverUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={row.coverUrl} alt="" width={48} height={48} className="size-12 shrink-0 rounded-md bg-slate-800 object-cover" />
+                <img src={row.coverUrl} alt="" width={48} height={48} className="size-12 shrink-0 rounded-lg border-2 border-cassette bg-plum-raised object-cover" />
               ) : (
-                <div aria-hidden="true" className="size-12 shrink-0 rounded-md bg-slate-800" />
+                <div aria-hidden="true" className="size-12 shrink-0 rounded-lg border-2 border-cassette bg-plum-raised" />
               )}
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">{row.title}</p>
-                <p className="truncate text-xs text-slate-300">{row.artist}</p>
+                <p className="truncate text-xs text-muted-foreground">{row.artist}</p>
               </div>
             </div>
 
             <div className="flex flex-1 flex-col gap-1">
               <div className="flex items-center justify-center gap-1">
-                <button type="button" onClick={player.toggleShuffle} aria-label="Orden aleatorio" aria-pressed={state.shuffle} className={`${iconButton} ${state.shuffle ? "text-blue-400" : ""}`}>
+                <button type="button" onClick={player.toggleShuffle} aria-label="Orden aleatorio" aria-pressed={state.shuffle} className={`${iconButton} ${state.shuffle ? "text-sun" : ""}`}>
                   <Shuffle aria-hidden="true" className="size-4" />
                 </button>
                 <button type="button" onClick={player.prev} aria-label="Pista anterior" className={iconButton}>
@@ -70,19 +70,19 @@ export function PlayerBar() {
                   type="button"
                   onClick={player.toggle}
                   aria-label={state.playing ? "Pausar" : "Reproducir"}
-                  className="inline-flex size-11 items-center justify-center rounded-full bg-white text-slate-900 hover:bg-slate-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                  className="inline-flex size-12 items-center justify-center rounded-full bg-sun text-plum shadow-[3px_3px_0_var(--coral)] transition-transform hover:brightness-110 active:translate-x-0.5 active:translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                 >
                   {state.playing ? <Pause aria-hidden="true" className="size-5" /> : <Play aria-hidden="true" className="size-5" />}
                 </button>
                 <button type="button" onClick={player.next} aria-label="Pista siguiente" className={iconButton}>
                   <SkipForward aria-hidden="true" className="size-5" />
                 </button>
-                <button type="button" onClick={player.cycleRepeat} aria-label={REPEAT_LABEL[state.repeat]} className={`${iconButton} ${state.repeat !== "off" ? "text-blue-400" : ""}`}>
+                <button type="button" onClick={player.cycleRepeat} aria-label={REPEAT_LABEL[state.repeat]} className={`${iconButton} ${state.repeat !== "off" ? "text-sun" : ""}`}>
                   <RepeatIcon aria-hidden="true" className="size-4" />
                 </button>
               </div>
 
-              <div className="flex items-center gap-2 text-xs tabular-nums text-slate-300">
+              <div className="flex items-center gap-2 text-xs tabular-nums text-muted-foreground">
                 <span aria-hidden="true" className="w-12 text-right">{elapsedText}</span>
                 <input
                   type="range"
@@ -93,7 +93,7 @@ export function PlayerBar() {
                   step={1}
                   value={Math.min(currentTime, Math.max(duration, 1))}
                   onChange={(e) => player.seek(Number(e.target.value))}
-                  className="h-11 min-w-0 flex-1 cursor-pointer accent-blue-500"
+                  className="h-11 min-w-0 flex-1 cursor-pointer accent-sun"
                 />
                 <span aria-hidden="true" className="w-12">{totalText}</span>
               </div>
@@ -112,7 +112,7 @@ export function PlayerBar() {
                 step={0.05}
                 value={muted ? 0 : volume}
                 onChange={(e) => player.setVolume(Number(e.target.value))}
-                className="h-11 min-w-0 flex-1 cursor-pointer accent-blue-500"
+                className="h-11 min-w-0 flex-1 cursor-pointer accent-sun"
               />
             </div>
           </div>
