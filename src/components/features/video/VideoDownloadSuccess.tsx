@@ -1,4 +1,4 @@
-import { CheckCircle2 } from "lucide-react"
+import { SuccessBurst } from "@/src/components/features/shared/SuccessBurst"
 import { FileDownloadActions } from "@/src/components/features/shared/FileDownloadActions"
 import type { VideoFile } from "@/src/types/api"
 
@@ -12,12 +12,12 @@ export function VideoDownloadSuccess({ files, jobId, onClean }: VideoDownloadSuc
   if (!files.length) return null
 
   return (
-    <div role="status" className="mt-4 p-4 bg-primary/15 border border-primary rounded-lg space-y-3">
+    <div role="status" className="mt-5 space-y-3 rounded-2xl border-2 border-mint bg-mint/10 p-4">
       <div className="flex items-start gap-3">
-        <CheckCircle2 aria-hidden="true" className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+        <SuccessBurst />
         <div className="flex-1">
-          <p className="text-sm font-bold text-primary mb-1">¡Descarga de video lista!</p>
-          <p className="text-xs text-primary/80 mb-2">
+          <p className="text-base font-bold text-mint mb-1">¡Descarga de video lista!</p>
+          <p className="text-sm text-muted-foreground mb-2">
             Se produjeron archivos. Descarga el ZIP o archivos individuales.
           </p>
         </div>

@@ -42,7 +42,7 @@ export default function MusicDownloader() {
 
         <TabSelector activeTab={tab} onTabChange={setTab} />
 
-        <Card className="relative p-6 md:p-8 bg-surface border border-surface-border shadow-xl shadow-black/30">
+        <Card className="relative rounded-3xl border-2 border-surface-border bg-card p-5 sm:p-6 md:p-8">
           <div role="tabpanel" id={panelId(tab)} aria-labelledby={tabId(tab)} className="relative">
             {tab === 'audio' && <AudioDownloadForm backendStatus={backendStatus} />}
             {tab === 'video' && <VideoDownloader noCard backendStatus={backendStatus} />}

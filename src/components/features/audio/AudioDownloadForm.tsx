@@ -15,6 +15,7 @@ import { AudioFormatSelector } from "./AudioFormatSelector"
 import { DownloadProgress } from "./DownloadProgress"
 import { DownloadSuccess } from "./DownloadSuccess"
 import { DownloadError } from "./DownloadError"
+import { heroInputClass, heroLabelClass, primaryActionClass, cancelActionClass } from "@/src/components/features/shared/hero-field"
 import { isPlaylistUrl } from "@/src/lib/utils/download-helpers"
 import { isValidContentUrl, sanitizeYouTubeUrl } from "@/src/lib/validators"
 import { DEFAULT_QUALITY, DEFAULT_AUDIO_FORMAT } from "@/src/constants/audio"
@@ -66,11 +67,13 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
     progressMessage,
   })
 
+  // Editing the URL resets stale errors and preview. It must depend on the URL only: also depending on
+  // the errors made this effect wipe a failed job's message the moment it appeared (nothing was shown).
   useEffect(() => {
-    if (error) clearError()
-    if (progressError) clearProgressError()
+    clearError()
+    clearProgressError()
     setAudioInfo(null)
-  }, [url, clearError, error, progressError, clearProgressError])
+  }, [url, clearError, clearProgressError])
 
   useEffect(() => {
     if ((progressStatus === 'success' || progressStatus === 'ready') && status !== 'success') {
@@ -220,9 +223,9 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
 
   return (
     <div className="relative">
-      <form onSubmit={handleDownload} className="space-y-5">
+      <form onSubmit={handleDownload} className="space-y-6">
         <div className="space-y-2">
-          <label htmlFor="url" className="text-sm font-bold text-foreground uppercase tracking-wide">
+          <label htmlFor="url" className={heroLabelClass}>
             {FORM_LABELS.URL_INPUT.AUDIO}
           </label>
           <div className="relative">
@@ -237,7 +240,7 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               disabled={isLoading || status === "info-loading"}
-              className="h-12 text-base bg-muted/50 border-2 border-muted focus:border-primary transition-colors pl-4 pr-16"
+              className={heroInputClass}
             />
             {url && (
               <Button
@@ -248,7 +251,7 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
                 aria-label="Ver información de la canción o video"
                 title="Ver información"
                 disabled={status === "info-loading" || isLoading}
-                className="absolute right-1 top-1 h-10 min-w-10 px-3"
+                className="absolute right-2 top-2 h-10 min-w-10 rounded-xl px-3 text-mode hover:bg-plum-raised hover:text-mode md:top-3"
               >
                 {status === "info-loading" ? (
                   <Loader2 aria-hidden="true" className="w-4 h-4 animate-spin" />
@@ -260,25 +263,27 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
           </div>
         </div>
 
-        <AudioInfoPreview audioInfo={audioInfo} />
+        <AudioInfoPreview audioInfo={audioInfo} loading={status === "info-loading"} />
 
-        <AudioFormatSelector
-          value={format}
-          onChange={setFormat}
-          disabled={isLoading}
-        />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <AudioFormatSelector
+            value={format}
+            onChange={setFormat}
+            disabled={isLoading}
+          />
 
-        <QualitySelector
-          value={quality}
-          format={format}
-          onChange={setQuality}
-          disabled={isLoading}
-        />
+          <QualitySelector
+            value={quality}
+            format={format}
+            onChange={setQuality}
+            disabled={isLoading}
+          />
+        </div>
 
         <Button
           type="submit"
           disabled={isDownloading || backendStatus !== "connected"}
-          className="w-full h-12 text-base font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-teal-700 text-white hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring transition-opacity shadow-lg shadow-blue-500/30"
+          className={primaryActionClass}
           size="lg"
         >
           {isDownloading ? (
@@ -302,7 +307,7 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
             type="button"
             variant="outline"
             onClick={cancelDownload}
-            className="w-full h-10 text-sm font-medium border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+            className={cancelActionClass}
           >
             Cancelar Descarga
           </Button>

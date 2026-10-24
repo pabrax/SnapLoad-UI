@@ -45,18 +45,18 @@ export function FileDownloadActions({
     <div className="space-y-2">
       {showIndividual && files.length > 0 && (
         <>
-          <p className="text-xs font-semibold text-primary/80 uppercase tracking-wide">Archivos</p>
+          <p className="text-sm font-semibold text-muted-foreground">Archivos</p>
           <ul className="space-y-1">
             {files.filter(f => f && f.name).map((file, idx) => (
               <li 
                 key={`${file.name}-${idx}`} 
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs bg-primary/5 px-3 py-2 rounded-lg border border-primary/10"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs bg-background px-3 py-2 rounded-xl border border-surface-border"
               >
                 <span className="break-words overflow-hidden w-full sm:max-w-[60%] sm:truncate" title={file.name}>
                   {file.name}
                 </span>
                 <div className="flex items-center gap-2 justify-end flex-shrink-0">
-                  <span className="text-[10px] opacity-70">
+                  <span className="text-xs text-muted-foreground">
                     {file.size_bytes ? `${Math.round(file.size_bytes / 1024)} KB` : ""}
                   </span>
                   <Button
@@ -65,7 +65,7 @@ export function FileDownloadActions({
                     variant="ghost"
                     onClick={() => handleDownloadFile(file.name)}
                     aria-label={`Descargar ${file.name}`}
-                    className="min-h-10"
+                    className="min-h-11 rounded-full text-mint hover:text-mint"
                   >
                     Descargar
                   </Button>
@@ -81,6 +81,7 @@ export function FileDownloadActions({
           type="button"
           size="sm"
           variant="outline"
+          className="min-h-11 rounded-full border-2 border-mint text-mint hover:bg-mint hover:text-plum"
           onClick={handleDownloadZip}
         >
           Descargar ZIP
@@ -90,6 +91,7 @@ export function FileDownloadActions({
           type="button"
           size="sm"
           variant="outline"
+          className="min-h-11 rounded-full border-2 border-mint text-mint hover:bg-mint hover:text-plum"
           onClick={handleDownloadAll}
         >
           Descargar todo
@@ -100,6 +102,7 @@ export function FileDownloadActions({
             type="button"
             size="sm"
             variant="ghost"
+            className="min-h-11 rounded-full"
             onClick={onClean}
           >
             Limpiar

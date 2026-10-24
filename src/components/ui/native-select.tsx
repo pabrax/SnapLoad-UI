@@ -39,7 +39,7 @@ export function NativeSelectField({
 
   return (
     <div className="space-y-2">
-      <label htmlFor={id} className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-foreground">
+      <label htmlFor={id} className="flex items-center gap-2 text-sm font-bold text-foreground">
         {icon}
         {label}
       </label>
@@ -51,8 +51,8 @@ export function NativeSelectField({
           aria-describedby={hintId}
           onChange={(e) => onValueChange(e.target.value)}
           className={cn(
-            "h-12 w-full cursor-pointer appearance-none rounded-md border-2 border-surface-border bg-slate-950/60 px-3 pr-10 text-base text-foreground",
-            "transition-colors hover:border-slate-500 focus-visible:border-primary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+            "h-12 w-full cursor-pointer appearance-none rounded-xl border-2 border-input bg-background px-3 pr-10 text-base text-foreground",
+            "transition-colors hover:border-mode focus-visible:border-mode focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
             "disabled:cursor-not-allowed disabled:opacity-60",
             className,
           )}
@@ -64,10 +64,10 @@ export function NativeSelectField({
             </option>
           ))}
         </select>
-        <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       </div>
       {hint && (
-        <p id={hintId} className="text-xs leading-relaxed text-slate-400">
+        <p id={hintId} className="text-xs leading-relaxed text-muted-foreground">
           {hint}
         </p>
       )}

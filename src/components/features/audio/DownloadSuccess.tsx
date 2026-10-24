@@ -1,5 +1,4 @@
-import { CheckCircle2 } from "lucide-react"
-import { Badge } from "@/src/components/ui/badge"
+import { SuccessBurst } from "@/src/components/features/shared/SuccessBurst"
 import { Button } from "@/src/components/ui/button"
 import { FileDownloadActions } from "@/src/components/features/shared/FileDownloadActions"
 import { downloadFile } from "@/src/lib/utils/download-helpers"
@@ -15,6 +14,10 @@ interface DownloadSuccessProps {
   audioInfo: AudioInfoResponse | null
   fileDownloaded?: boolean
   onClean?: () => void
+}
+
+function Badge({ children }: { children: React.ReactNode }) {
+  return <span className="rounded-full border border-mint/60 px-2.5 py-0.5 text-xs font-semibold text-mint">{children}</span>
 }
 
 export function DownloadSuccess({ 
@@ -40,24 +43,24 @@ export function DownloadSuccess({
   if (isSingleFile) {
     // Canción individual
     return (
-      <div role="status" className="mt-4 p-4 bg-primary/15 border border-primary rounded-lg">
+      <div role="status" className="mt-5 rounded-2xl border-2 border-mint bg-mint/10 p-4">
         <div className="flex items-start gap-3">
-          <CheckCircle2 aria-hidden="true" className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+          <SuccessBurst />
           <div className="flex-1">
-            <p className="text-sm font-bold text-primary mb-1">{DOWNLOAD_MESSAGES.SUCCESS.AUDIO_SINGLE}</p>
-            <p className="text-xs text-primary/80 mb-2">
+            <p className="text-base font-bold text-mint mb-1">{DOWNLOAD_MESSAGES.SUCCESS.AUDIO_SINGLE}</p>
+            <p className="text-sm text-muted-foreground mb-2">
               {fileDownloaded 
                 ? DOWNLOAD_MESSAGES.SUCCESS.AUTO_DOWNLOAD
                 : DOWNLOAD_MESSAGES.PROCESSING.FINALIZING}
             </p>
             <div className="flex flex-wrap gap-1">
               {quality && (
-                <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
+                <Badge>
                   {describeAudioQuality(quality, format)}
                 </Badge>
               )}
               {audioInfo?.metadata?.platform && (
-                <Badge variant="secondary" className="bg-secondary/10 text-secondary border-secondary/20 text-xs">
+                <Badge>
                   {audioInfo.metadata.platform}
                 </Badge>
               )}
@@ -70,11 +73,11 @@ export function DownloadSuccess({
                   {files.slice(0, 1).map(f => (
                     <li 
                       key={f.name} 
-                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs bg-primary/5 px-3 py-2 rounded-lg border border-primary/10"
+                      className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs bg-background px-3 py-2 rounded-xl border border-surface-border"
                     >
                       <span className="break-words overflow-hidden w-full sm:max-w-[70%] sm:truncate" title={f.name}>{f.name}</span>
                       <div className="flex items-center gap-2 justify-end flex-shrink-0">
-                        <span className="text-[10px] opacity-70">
+                        <span className="text-xs text-muted-foreground">
                           {f.size_bytes ? `${Math.round(f.size_bytes / 1024)} KB` : ''}
                         </span>
                         <Button
@@ -83,7 +86,7 @@ export function DownloadSuccess({
                           variant="ghost"
                           onClick={() => handleDownloadSingleFile(f.name)}
                           aria-label={`Descargar ${f.name}`}
-                          className="min-h-10"
+                          className="min-h-11 rounded-full text-mint hover:text-mint"
                         >
                           Descargar
                         </Button>
@@ -106,22 +109,22 @@ export function DownloadSuccess({
   }
 
   return (
-    <div role="status" className="mt-4 p-4 bg-primary/15 border border-primary rounded-lg space-y-3">
+    <div role="status" className="mt-5 rounded-2xl border-2 border-mint bg-mint/10 p-4 space-y-3">
       <div className="flex items-start gap-3">
-        <CheckCircle2 aria-hidden="true" className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+        <SuccessBurst />
         <div className="flex-1">
-          <p className="text-sm font-bold text-primary mb-1">¡Descarga exitosa!</p>
-          <p className="text-xs text-primary/80 mb-2">
+          <p className="text-base font-bold text-mint mb-1">¡Descarga exitosa!</p>
+          <p className="text-sm text-muted-foreground mb-2">
             Se produjeron varios archivos. Descarga el ZIP o archivos individuales.
           </p>
           <div className="flex flex-wrap gap-1">
             {quality && (
-              <Badge variant="secondary" className="bg-primary/10 text-primary border-primary/20 text-xs">
+              <Badge>
                 {describeAudioQuality(quality, format)}
               </Badge>
             )}
             {audioInfo?.metadata?.platform && (
-              <Badge variant="secondary" className="bg-secondary/10 text-secondary border-secondary/20 text-xs">
+              <Badge>
                 {audioInfo.metadata.platform}
               </Badge>
             )}

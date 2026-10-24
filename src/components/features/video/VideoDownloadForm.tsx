@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Download, Loader2 } from "lucide-react"
 import { Button } from "@/src/components/ui/button"
+import { heroInputClass, heroLabelClass, primaryActionClass, cancelActionClass } from "@/src/components/features/shared/hero-field"
 import { Input } from "@/src/components/ui/input"
 import { VideoFormatSelector } from "./VideoFormatSelector"
 import { VideoResolutionSelector } from "./VideoResolutionSelector"
@@ -117,9 +118,9 @@ export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormPr
 
   return (
     <div className="relative">
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <form onSubmit={handleSubmit} className="space-y-6">
         <div className="space-y-2">
-          <label htmlFor="video-url" className="text-sm font-bold text-foreground uppercase tracking-wide">
+          <label htmlFor="video-url" className={heroLabelClass}>
             URL del Video
           </label>
           <Input
@@ -134,32 +135,32 @@ export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormPr
             value={url}
             onChange={(e) => handleUrlChange(e.target.value)}
             disabled={isDownloading}
-            className={`h-12 text-base bg-muted/50 border-2 transition-colors pl-4 ${
-              urlError ? 'border-destructive focus:border-destructive' : 'border-muted focus:border-primary'
-            }`}
+            className={`${heroInputClass} pr-4 ${urlError ? 'border-tomato shadow-[4px_4px_0_var(--tomato)]' : ''}`}
           />
           {urlError && (
-            <p id="video-url-error" role="alert" className="text-sm text-red-300 mt-1">{urlError}</p>
+            <p id="video-url-error" role="alert" className="text-sm text-tomato mt-1">{urlError}</p>
           )}
         </div>
 
-        <VideoFormatSelector
-          value={format}
-          onChange={handleFormatChange}
-          disabled={isDownloading}
-        />
+        <div className="grid gap-5 sm:grid-cols-2">
+          <VideoFormatSelector
+            value={format}
+            onChange={handleFormatChange}
+            disabled={isDownloading}
+          />
 
-        <VideoResolutionSelector
-          value={resolution}
-          format={format}
-          onChange={setResolution}
-          disabled={isDownloading}
-        />
+          <VideoResolutionSelector
+            value={resolution}
+            format={format}
+            onChange={setResolution}
+            disabled={isDownloading}
+          />
+        </div>
 
         <Button
           type="submit"
           disabled={isDownloading || backendStatus !== "connected"}
-          className="w-full h-12 text-base font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-teal-700 text-white hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring transition-opacity shadow-lg shadow-blue-500/30"
+          className={primaryActionClass}
           size="lg"
         >
           {isDownloading ? (
@@ -181,7 +182,7 @@ export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormPr
             type="button"
             variant="outline"
             onClick={cancelVideoDownload}
-            className="w-full h-10 text-sm font-medium border-2 border-destructive text-destructive hover:bg-destructive hover:text-destructive-foreground"
+            className={cancelActionClass}
           >
             Cancelar Descarga
           </Button>

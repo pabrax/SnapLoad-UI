@@ -21,7 +21,7 @@ export default function VideoDownloader({
   }
 
   return (
-    <Card className="relative p-6 md:p-8 bg-surface border border-surface-border shadow-xl shadow-black/30">
+    <Card className="relative rounded-3xl border-2 border-surface-border bg-card p-5 sm:p-6 md:p-8">
       <div className="relative z-10">{inner}</div>
     </Card>
   )
