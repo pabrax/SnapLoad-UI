@@ -1,7 +1,7 @@
 "use client"
 
 import { useCallback, useEffect, useRef, useState } from "react"
-import { Bookmark, BookmarkCheck, Music2, Trash2 } from "lucide-react"
+import { AudioLines, Bookmark, BookmarkCheck, Music2, Trash2 } from "lucide-react"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,7 +28,28 @@ interface LibraryPanelProps {
 }
 
 const actionButton =
-  "inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-slate-200 transition-colors hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+  "inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-foreground transition-colors hover:bg-plum-raised focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+
+// Covers without art get a colored tile; the color is derived from the id so it stays stable between renders.
+const TILE_COLORS = ["bg-coral", "bg-violet", "bg-sun", "bg-mint"]
+const tileColor = (id: string) => TILE_COLORS[[...id].reduce((sum, ch) => sum + ch.charCodeAt(0), 0) % TILE_COLORS.length]
+
+/** Cassette drawn inline (no asset to load); colors come from tokens. */
+function EmptyCassette() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 160 110" className="mx-auto mb-4 h-28 w-40">
+      <rect x="6" y="10" width="148" height="90" rx="14" className="fill-plum-raised stroke-cassette" strokeWidth="3" />
+      <rect x="22" y="22" width="116" height="38" rx="8" className="fill-cassette" />
+      <rect x="30" y="30" width="60" height="6" rx="3" className="fill-coral" />
+      <rect x="30" y="42" width="42" height="6" rx="3" className="fill-sun" />
+      <circle cx="52" cy="78" r="12" className="fill-plum stroke-cassette" strokeWidth="3" />
+      <circle cx="108" cy="78" r="12" className="fill-plum stroke-cassette" strokeWidth="3" />
+      <circle cx="52" cy="78" r="4" className="fill-mint" />
+      <circle cx="108" cy="78" r="4" className="fill-mint" />
+      <rect x="66" y="70" width="28" height="16" rx="4" className="fill-plum stroke-cassette" strokeWidth="2" />
+    </svg>
+  )
+}
 
 export default function LibraryPanel({ onGoToDownloads }: LibraryPanelProps) {
   const player = usePlayer()
@@ -115,10 +136,10 @@ export default function LibraryPanel({ onGoToDownloads }: LibraryPanelProps) {
   const searching = debounced.trim() !== ""
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
         <div className="sm:w-80">
-          <label htmlFor="library-search" className="mb-1 block text-sm font-medium text-slate-200">
+          <label htmlFor="library-search" className="mb-1.5 block text-base font-bold text-foreground">
             Buscar en la biblioteca
           </label>
           <input
@@ -128,11 +149,11 @@ export default function LibraryPanel({ onGoToDownloads }: LibraryPanelProps) {
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Título o artista"
             autoComplete="off"
-            className="min-h-11 w-full rounded-md border border-slate-600 bg-slate-900 px-3 text-slate-100 placeholder:text-slate-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            className="min-h-12 w-full rounded-2xl border-2 border-mode bg-background px-4 text-foreground shadow-[3px_3px_0_var(--mode)] placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
           />
         </div>
         {status === "ready" && (
-          <p className="text-sm text-slate-300">
+          <p className="text-sm text-muted-foreground">
             {total} {total === 1 ? "canción" : "canciones"} · conservadas: {formatBytes(keptBytes)}
           </p>
         )}
@@ -143,16 +164,23 @@ export default function LibraryPanel({ onGoToDownloads }: LibraryPanelProps) {
       </p>
 
       {status === "loading" && (
-        <p role="status" className="py-8 text-center text-slate-300">
-          Cargando biblioteca…
-        </p>
+        <div>
+          <p role="status" className="py-2 text-center text-muted-foreground">
+            Cargando biblioteca…
+          </p>
+          <div aria-hidden="true" className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="shimmer aspect-square rounded-2xl bg-plum-raised" />
+            ))}
+          </div>
+        </div>
       )}
 
       {status === "error" && error && (
-        <div role="alert" className="rounded-md border border-red-800 bg-red-950 p-4 text-red-100">
+        <div role="alert" className="shake-once rounded-2xl border-2 border-dashed border-tomato bg-tomato/10 p-4 text-foreground">
           <p>{error.message}</p>
           {error.retryable && (
-            <button type="button" onClick={() => void loadFirstPage()} className="mt-3 min-h-11 rounded-md bg-red-800 px-4 font-medium hover:bg-red-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+            <button type="button" onClick={() => void loadFirstPage()} className="mt-3 min-h-11 rounded-full bg-tomato px-5 font-bold text-plum hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
               Reintentar
             </button>
           )}
@@ -160,14 +188,14 @@ export default function LibraryPanel({ onGoToDownloads }: LibraryPanelProps) {
       )}
 
       {status === "ready" && items.length === 0 && (
-        <div className="py-10 text-center text-slate-300">
-          <Music2 aria-hidden="true" className="mx-auto mb-3 size-10 text-slate-400" />
+        <div className="py-8 text-center text-muted-foreground">
+          <EmptyCassette />
           {searching ? (
             <p>Sin resultados para «{debounced.trim()}».</p>
           ) : (
             <>
-              <p>Aún no hay canciones en tu biblioteca.</p>
-              <button type="button" onClick={onGoToDownloads} className="mt-4 min-h-11 rounded-full bg-blue-600 px-5 font-semibold text-white hover:bg-blue-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring">
+              <p className="text-base text-foreground">Aún no hay canciones en tu biblioteca.</p>
+              <button type="button" onClick={onGoToDownloads} className="mt-5 min-h-11 rounded-full bg-coral px-6 font-bold text-plum shadow-[3px_3px_0_var(--cassette)] hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring">
                 Descargar audio
               </button>
             </>
@@ -177,47 +205,54 @@ export default function LibraryPanel({ onGoToDownloads }: LibraryPanelProps) {
 
       {status === "ready" && items.length > 0 && (
         <>
-          <ul aria-label="Canciones" className="divide-y divide-slate-800">
+          <ul aria-label="Canciones" className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
             {items.map((track, index) => {
               const row = trackRow(track)
               const isCurrent = player.track?.id === track.id
               return (
-                <li key={track.id} className="flex items-center gap-1 py-1">
+                <li key={track.id} className={`lift flex flex-col rounded-2xl border-2 bg-card ${isCurrent ? "border-sun shadow-[4px_4px_0_var(--sun)]" : "border-surface-border"}`}>
                   <button
                     type="button"
                     onClick={() => player.playTracks(items, index)}
                     aria-current={isCurrent ? "true" : undefined}
-                    className={`flex min-h-14 min-w-0 flex-1 items-center gap-3 rounded-md px-2 text-left hover:bg-slate-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring ${isCurrent ? "bg-slate-800" : ""}`}
+                    className="relative block min-w-0 rounded-2xl p-2 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                   >
-                    {row.coverUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={row.coverUrl} alt="" width={40} height={40} loading="lazy" className="size-10 shrink-0 rounded bg-slate-800 object-cover" />
-                    ) : (
-                      <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded bg-slate-800">
-                        <Music2 className="size-5 text-slate-400" />
-                      </span>
-                    )}
-                    <span className="min-w-0 flex-1">
-                      {/* The accessible name is built from the visible text (WCAG 2.5.3): "Reproducir Title Artist 3:35" */}
-                      <span className="sr-only">Reproducir </span>
-                      <span className={`block truncate text-sm font-semibold ${isCurrent ? "text-blue-300" : "text-slate-100"}`}>{row.title}</span>
-                      <span className="block truncate text-xs text-slate-300">{row.artist}</span>
+                    <span className="relative mb-2 block aspect-square overflow-hidden rounded-xl border-2 border-plum">
+                      {row.coverUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={row.coverUrl} alt="" width={200} height={200} loading="lazy" className="size-full bg-plum-raised object-cover" />
+                      ) : (
+                        <span aria-hidden="true" className={`flex size-full items-center justify-center ${tileColor(track.id)}`}>
+                          <Music2 className="size-1/3 text-plum" />
+                        </span>
+                      )}
+                      {isCurrent && (
+                        <span aria-hidden="true" className="absolute left-1.5 top-1.5 flex size-7 items-center justify-center rounded-full bg-sun text-plum">
+                          <AudioLines className="size-4" />
+                        </span>
+                      )}
                     </span>
-                    <span className="shrink-0 text-xs tabular-nums text-slate-300">{row.duration}</span>
+                    {/* The accessible name is built from the visible text (WCAG 2.5.3): "Reproducir Title Artist 3:35" */}
+                    <span className="sr-only">Reproducir </span>
+                    <span className={`line-clamp-2 break-words px-1 text-sm font-bold leading-snug ${isCurrent ? "text-sun" : "text-foreground"}`}>{row.title}</span>
+                    <span className="block truncate px-1 text-xs text-muted-foreground">{row.artist}</span>
+                    <span className="absolute right-3.5 top-3.5 rounded-full bg-plum/85 px-2 py-0.5 text-xs font-semibold tabular-nums text-cassette">{row.duration}</span>
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => void toggleKept(track)}
-                    aria-pressed={track.kept}
-                    aria-label={`Conservar ${row.title}`}
-                    title={track.kept ? "Conservada: no se elimina sola" : "Se eliminará con la limpieza automática"}
-                    className={`${actionButton} ${track.kept ? "text-blue-400" : ""}`}
-                  >
-                    {track.kept ? <BookmarkCheck aria-hidden="true" className="size-5" /> : <Bookmark aria-hidden="true" className="size-5" />}
-                  </button>
-                  <button type="button" onClick={() => setPendingDelete(track)} aria-label={`Eliminar ${row.title}`} className={`${actionButton} hover:text-red-300`}>
-                    <Trash2 aria-hidden="true" className="size-5" />
-                  </button>
+                  <div className="mt-auto flex justify-end gap-0.5 px-1.5 pb-1.5">
+                    <button
+                      type="button"
+                      onClick={() => void toggleKept(track)}
+                      aria-pressed={track.kept}
+                      aria-label={`Conservar ${row.title}`}
+                      title={track.kept ? "Conservada: no se elimina sola" : "Se eliminará con la limpieza automática"}
+                      className={`${actionButton} ${track.kept ? "text-sun" : ""}`}
+                    >
+                      {track.kept ? <BookmarkCheck aria-hidden="true" className="size-5" /> : <Bookmark aria-hidden="true" className="size-5" />}
+                    </button>
+                    <button type="button" onClick={() => setPendingDelete(track)} aria-label={`Eliminar ${row.title}`} className={`${actionButton} hover:text-tomato`}>
+                      <Trash2 aria-hidden="true" className="size-5" />
+                    </button>
+                  </div>
                 </li>
               )
             })}
@@ -225,7 +260,7 @@ export default function LibraryPanel({ onGoToDownloads }: LibraryPanelProps) {
 
           {items.length < total && (
             <div className="text-center">
-              <button type="button" onClick={() => void loadMore()} disabled={loadingMore} className="min-h-11 rounded-full bg-slate-800 px-5 font-medium text-slate-100 hover:bg-slate-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60">
+              <button type="button" onClick={() => void loadMore()} disabled={loadingMore} className="min-h-11 rounded-full border-2 border-mode px-6 font-bold text-mode hover:bg-mode hover:text-mode-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:opacity-60">
                 {loadingMore ? "Cargando…" : "Cargar más"}
               </button>
             </div>
@@ -234,10 +269,10 @@ export default function LibraryPanel({ onGoToDownloads }: LibraryPanelProps) {
       )}
 
       <AlertDialog open={pendingDelete !== null} onOpenChange={(open) => !open && setPendingDelete(null)}>
-        <AlertDialogContent className="max-w-md border-slate-700 bg-slate-900">
+        <AlertDialogContent className="max-w-md border-surface-border bg-card">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-slate-100">¿Eliminar esta canción?</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-300">
+            <AlertDialogTitle className="font-display text-foreground">¿Eliminar esta canción?</AlertDialogTitle>
+            <AlertDialogDescription className="text-muted-foreground">
               «{pendingDelete?.title ?? "Sin título"}» se borrará del servidor y no se puede recuperar.
             </AlertDialogDescription>
           </AlertDialogHeader>
