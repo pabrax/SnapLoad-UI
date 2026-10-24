@@ -7,7 +7,7 @@ import { Card } from "@/src/components/ui/card"
 
 export default function VideoPage() {
   return (
-    <main id="contenido" tabIndex={-1} className="min-h-screen relative overflow-hidden flex flex-col items-center justify-center p-6 md:p-8 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <main id="contenido" tabIndex={-1} data-mode="video" className="backdrop relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-6 md:p-8">
       <div className="relative z-10 w-full max-w-4xl px-4 md:px-6">
         <nav aria-label="Navegación" className="mb-6">
           <Link

@@ -3,85 +3,109 @@
 
 @custom-variant dark (&:is(.dark *));
 
-:root {
-  /* Bold vibrant color scheme with greens, purples, and oranges */
-  --background: oklch(0.12 0.02 240);
-  --foreground: oklch(0.98 0 0);
-  --card: oklch(0.15 0.03 240);
-  --card-foreground: oklch(0.98 0 0);
-  --popover: oklch(0.15 0.03 240);
-  --popover-foreground: oklch(0.98 0 0);
-  --primary: oklch(0.72 0.19 160);
-  --primary-foreground: oklch(0.12 0.02 240);
-  --secondary: oklch(0.7 0.18 190);
-  --secondary-foreground: oklch(0.98 0 0);
-  --muted: oklch(0.25 0.03 240);
-  --muted-foreground: oklch(0.65 0.05 240);
-  --accent: oklch(0.75 0.2 135);
-  --accent-foreground: oklch(0.12 0.02 240);
-  --success: oklch(0.72 0.19 160);
-  --destructive: oklch(0.65 0.25 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.25 0.03 240);
-  --surface: oklch(0.17 0.03 245);
-  --surface-border: oklch(0.3 0.03 245);
-  --input: oklch(0.25 0.03 240);
-  --ring: oklch(0.72 0.19 160);
-  --chart-1: oklch(0.72 0.19 160);
-  --chart-2: oklch(0.7 0.18 190);
-  --chart-3: oklch(0.75 0.2 135);
-  --chart-4: oklch(0.68 0.17 175);
-  --chart-5: oklch(0.73 0.19 150);
-  --radius: 1rem;
-  --sidebar: oklch(0.15 0.03 240);
-  --sidebar-foreground: oklch(0.98 0 0);
-  --sidebar-primary: oklch(0.72 0.19 160);
-  --sidebar-primary-foreground: oklch(0.12 0.02 240);
-  --sidebar-accent: oklch(0.25 0.03 240);
-  --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(0.25 0.03 240);
-  --sidebar-ring: oklch(0.72 0.19 160);
+/*
+ * SnapLoad "mixtape" identity. The app is dark-only (viewport colorScheme: dark), so the tokens below are
+ * the single source of color: components use token classes (bg-mode, text-muted-foreground, ...), never hex.
+ * Contrast (WCAG 2.2 AA, checked with a script): cassette on plum 16.9:1, coral on surface 5.3:1,
+ * violet on surface 5.8:1, sun on surface 10.2:1, mint on surface 9.7:1, plum ink on every mode color >= 6:1.
+ */
+
+/* Registered so the mode color can transition and recolor every dependent token smoothly. */
+@property --mode {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ff5d73;
+}
+@property --mode-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #1b1030;
 }
 
-.dark {
-  --background: oklch(0.12 0.02 240);
-  --foreground: oklch(0.98 0 0);
-  --card: oklch(0.15 0.03 240);
-  --card-foreground: oklch(0.98 0 0);
-  --popover: oklch(0.15 0.03 240);
-  --popover-foreground: oklch(0.98 0 0);
-  --primary: oklch(0.72 0.19 160);
-  --primary-foreground: oklch(0.12 0.02 240);
-  --secondary: oklch(0.7 0.18 190);
-  --secondary-foreground: oklch(0.98 0 0);
-  --muted: oklch(0.25 0.03 240);
-  --muted-foreground: oklch(0.65 0.05 240);
-  --accent: oklch(0.75 0.2 135);
-  --accent-foreground: oklch(0.12 0.02 240);
-  --success: oklch(0.72 0.19 160);
-  --destructive: oklch(0.65 0.25 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.25 0.03 240);
-  --surface: oklch(0.17 0.03 245);
-  --surface-border: oklch(0.3 0.03 245);
-  --input: oklch(0.25 0.03 240);
-  --ring: oklch(0.72 0.19 160);
-  --chart-1: oklch(0.72 0.19 160);
-  --chart-2: oklch(0.7 0.18 190);
-  --chart-3: oklch(0.75 0.2 135);
-  --chart-4: oklch(0.68 0.17 175);
-  --chart-5: oklch(0.73 0.19 150);
-  --sidebar: oklch(0.15 0.03 240);
-  --sidebar-foreground: oklch(0.98 0 0);
-  --sidebar-primary: oklch(0.72 0.19 160);
-  --sidebar-primary-foreground: oklch(0.12 0.02 240);
-  --sidebar-accent: oklch(0.25 0.03 240);
-  --sidebar-accent-foreground: oklch(0.98 0 0);
-  --sidebar-border: oklch(0.25 0.03 240);
-  --sidebar-ring: oklch(0.72 0.19 160);
+:root {
+  --plum: #1b1030;
+  --plum-surface: #2a1b47;
+  --plum-raised: #36245a;
+  --cassette: #fff6ec;
+  --coral: #ff5d73;
+  --violet: #9c90ff;
+  --sun: #ffc93c;
+  --mint: #5ce1c6;
+  --tomato: #ff6b57;
+
+  /* Mode: switched by data-mode on the page wrapper (audio is the default). */
+  --mode: var(--coral);
+  --mode-ink: var(--plum);
+
+  --background: var(--plum);
+  --foreground: var(--cassette);
+  --card: var(--plum-surface);
+  --card-foreground: var(--cassette);
+  --popover: var(--plum-surface);
+  --popover-foreground: var(--cassette);
+  --primary: var(--mode);
+  --primary-foreground: var(--mode-ink);
+  --secondary: var(--plum-raised);
+  --secondary-foreground: var(--cassette);
+  --muted: var(--plum-raised);
+  --muted-foreground: color-mix(in oklab, var(--cassette) 68%, var(--plum-surface));
+  --accent: var(--plum-raised);
+  --accent-foreground: var(--cassette);
+  --success: var(--mint);
+  --destructive: var(--tomato);
+  --destructive-foreground: var(--plum);
+  --border: color-mix(in oklab, var(--cassette) 18%, var(--plum-surface));
+  --surface: var(--plum-surface);
+  --surface-border: color-mix(in oklab, var(--cassette) 26%, var(--plum-surface));
+  --input: color-mix(in oklab, var(--cassette) 55%, var(--plum-surface));
+  --ring: var(--sun);
+  --chart-1: var(--coral);
+  --chart-2: var(--violet);
+  --chart-3: var(--sun);
+  --chart-4: var(--mint);
+  --chart-5: var(--tomato);
+  --radius: 1rem;
+  --sidebar: var(--plum-surface);
+  --sidebar-foreground: var(--cassette);
+  --sidebar-primary: var(--mode);
+  --sidebar-primary-foreground: var(--mode-ink);
+  --sidebar-accent: var(--plum-raised);
+  --sidebar-accent-foreground: var(--cassette);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--sun);
+}
+
+[data-mode="audio"] {
+  --mode: var(--coral);
+  --mode-ink: var(--plum);
+}
+[data-mode="video"] {
+  --mode: var(--violet);
+  --mode-ink: var(--plum);
+}
+[data-mode="library"] {
+  --mode: var(--sun);
+  --mode-ink: var(--plum);
+}
+
+[data-mode] {
+  transition: --mode 0.35s ease, --mode-ink 0.35s ease;
 }
 
 @theme inline {
+  --color-mode: var(--mode);
+  --color-mode-ink: var(--mode-ink);
+  --color-plum: var(--plum);
+  --color-plum-surface: var(--plum-surface);
+  --color-plum-raised: var(--plum-raised);
+  --color-cassette: var(--cassette);
+  --color-coral: var(--coral);
+  --color-violet: var(--violet);
+  --color-sun: var(--sun);
+  --color-mint: var(--mint);
+  --color-tomato: var(--tomato);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-unbounded), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -132,7 +156,101 @@
   }
 }
 
-/* Sin animaciones infinitas ni filtros blur: pintaban en cada frame y retrasaban el LCP móvil (3.8 s). */
+/* Page backdrop: static, one layer, tinted by the active mode (no blur, no animation). */
+.backdrop {
+  background:
+    radial-gradient(60% 50% at 12% 0%, color-mix(in oklab, var(--mode) 22%, transparent), transparent),
+    radial-gradient(50% 45% at 100% 100%, color-mix(in oklab, var(--violet) 16%, transparent), transparent),
+    repeating-radial-gradient(circle at 92% 6%, transparent 0 22px, color-mix(in oklab, var(--cassette) 5%, transparent) 22px 24px);
+}
+
+/* Hard offset shadow in the mode color: the identity's recurring "sticker" cue. */
+.pop-shadow {
+  box-shadow: 4px 4px 0 var(--mode);
+}
+.pop-shadow-sm {
+  box-shadow: 3px 3px 0 var(--mode);
+}
+
+/* ---- Motion. Every animation here is finite, except .eq-bar (approved: only while a job runs). ---- */
+
+/* Tab indicator slides between the three equal segments. */
+.tab-indicator {
+  transition: transform 0.32s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+/* Fetching info: shimmer sweeping over the skeleton, a handful of iterations then it stops with the request. */
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+.shimmer {
+  background-image: linear-gradient(100deg, transparent 30%, color-mix(in oklab, var(--cassette) 16%, transparent) 50%, transparent 70%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear 10;
+}
+
+/* Equalizer: loops only while a download job is running (the component unmounts on success/error/cancel). */
+@keyframes eq {
+  0%, 100% { transform: scaleY(0.25); }
+  50% { transform: scaleY(1); }
+}
+.eq-bar {
+  transform-origin: bottom;
+  animation: eq 0.9s ease-in-out infinite;
+}
+.eq-bar-idle {
+  transform: scaleY(0.2);
+  opacity: 0.55;
+}
+
+/* Success: check pops, dots burst once (<= 600 ms). */
+@keyframes pop {
+  0% { transform: scale(0.4); opacity: 0; }
+  60% { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.pop-in {
+  animation: pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+@keyframes burst {
+  0% { transform: translate(0, 0) scale(0.4); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(1); opacity: 0; }
+}
+.burst-dot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin: -0.25rem 0 0 -0.25rem;
+  border-radius: 9999px;
+  opacity: 0;
+  animation: burst 0.6s ease-out both;
+}
+
+/* Error: one short shake. */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-6px); }
+  40% { transform: translateX(5px); }
+  60% { transform: translateX(-3px); }
+  80% { transform: translateX(2px); }
+}
+.shake-once {
+  animation: shake 0.45s ease-in-out 1;
+}
+
+/* Library covers and cards: lift on hover. */
+.lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.lift:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--mode);
+}
+
+/* Reduced motion: no looping, no travel; every animated state keeps a static equivalent. */
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,
@@ -141,5 +259,20 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  .eq-bar {
+    animation: none;
+    transform: scaleY(var(--h, 0.6));
+  }
+  .burst-dot {
+    display: none;
+  }
+  .shimmer {
+    animation: none;
+    background-image: none;
+    opacity: 0.6;
+  }
+  .lift:hover {
+    transform: none;
   }
 }

@@ -6,7 +6,6 @@ import { Card } from "@/src/components/ui/card"
 import { AudioHeader } from "@/src/components/features/shared/AudioHeader"
 import { TabSelector, tabId, panelId } from "@/src/components/features/shared/TabSelector"
 import { FeatureBadges } from "@/src/components/features/shared/FeatureBadges"
-import { BackgroundEffects } from "@/src/components/features/shared/BackgroundEffects"
 import { Footer } from "@/src/components/features/shared/LegalDisclaimer"
 import AudioDownloadForm from "@/src/components/features/audio/AudioDownloadForm"
 import { useBackendHealth } from "@/src/hooks/use-backend-health"
@@ -33,9 +32,7 @@ export default function MusicDownloader() {
   const isDialogOpen = backendStatus === 'disconnected' && !dialogDismissed
 
   return (
-    <main id="contenido" tabIndex={-1} className="min-h-screen relative overflow-hidden flex flex-col items-center justify-center p-6 md:p-8 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <BackgroundEffects />
-
+    <main id="contenido" tabIndex={-1} data-mode={tab} className="backdrop relative flex min-h-screen flex-col items-center justify-center overflow-hidden p-6 md:p-8">
       {isDialogOpen && (
         <BackendDisconnectedDialog open onOpenChange={() => setDialogDismissed(true)} />
       )}
