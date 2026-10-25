@@ -70,7 +70,7 @@ export function AudioInfoPreview({ audioInfo, loading = false }: AudioInfoPrevie
           <p className="truncate text-base font-bold">{title ?? "Sin título"}</p>
           {artist && <p className="truncate text-sm text-plum/80">{artist}</p>}
           <div className="mt-1.5 flex flex-wrap gap-2 text-xs font-bold">
-            {platform && <span className="rounded-full bg-plum px-2.5 py-0.5 text-cassette">{platform}</span>}
+            {platform && <span className="rounded-full bg-plum px-2.5 py-0.5 text-cassette">{platformName ?? platform}</span>}
             {duration ? <span className="rounded-full border-2 border-plum px-2.5 py-0.5 tabular-nums">{formatDuration(duration)}</span> : null}
           </div>
         </div>

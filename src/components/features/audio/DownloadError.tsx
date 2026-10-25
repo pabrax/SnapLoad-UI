@@ -8,7 +8,7 @@ interface DownloadErrorProps {
 }
 
 export function DownloadError({ error, onClose }: DownloadErrorProps) {
-  const ref = useScrollIntoView<HTMLDivElement>(Boolean(error))
+  const ref = useScrollIntoView<HTMLDivElement>(error)
   if (!error) return null
 
   return (
