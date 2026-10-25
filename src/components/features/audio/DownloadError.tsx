@@ -1,5 +1,6 @@
 import { AlertCircle } from "lucide-react"
 import { Button } from "@/src/components/ui/button"
+import { useScrollIntoView } from "@/src/components/features/shared/use-scroll-into-view"
 
 interface DownloadErrorProps {
   error: string | null
@@ -7,10 +8,11 @@ interface DownloadErrorProps {
 }
 
 export function DownloadError({ error, onClose }: DownloadErrorProps) {
+  const ref = useScrollIntoView<HTMLDivElement>(Boolean(error))
   if (!error) return null
 
   return (
-    <div role="alert" className="shake-once mt-5 flex items-start gap-3 rounded-2xl border-2 border-dashed border-tomato bg-tomato/10 p-4">
+    <div ref={ref} role="alert" className="shake-once mt-5 flex items-start gap-3 rounded-2xl border-2 border-dashed border-tomato bg-tomato/10 p-4">
       <AlertCircle aria-hidden="true" className="mt-0.5 h-6 w-6 flex-shrink-0 text-tomato" />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-bold text-tomato">Error</p>

@@ -1,3 +1,4 @@
+import { useScrollIntoView } from "@/src/components/features/shared/use-scroll-into-view"
 import { SuccessBurst } from "@/src/components/features/shared/SuccessBurst"
 import { Button } from "@/src/components/ui/button"
 import { FileDownloadActions } from "@/src/components/features/shared/FileDownloadActions"
@@ -30,6 +31,7 @@ export function DownloadSuccess({
   onClean 
 }: DownloadSuccessProps) {
   const isSingleFile = files.length <= 1
+  const ref = useScrollIntoView<HTMLDivElement>()
 
   const handleDownloadSingleFile = async (filename: string) => {
     if (!jobId) return
@@ -43,7 +45,7 @@ export function DownloadSuccess({
   if (isSingleFile) {
     // Canción individual
     return (
-      <div role="status" className="mt-5 rounded-2xl border-2 border-mint bg-mint/10 p-4">
+      <div ref={ref} role="status" className="mt-5 rounded-2xl border-2 border-mint bg-mint/10 p-4">
         <div className="flex items-start gap-3">
           <SuccessBurst />
           <div className="flex-1">
@@ -109,7 +111,7 @@ export function DownloadSuccess({
   }
 
   return (
-    <div role="status" className="mt-5 rounded-2xl border-2 border-mint bg-mint/10 p-4 space-y-3">
+    <div ref={ref} role="status" className="mt-5 rounded-2xl border-2 border-mint bg-mint/10 p-4 space-y-3">
       <div className="flex items-start gap-3">
         <SuccessBurst />
         <div className="flex-1">

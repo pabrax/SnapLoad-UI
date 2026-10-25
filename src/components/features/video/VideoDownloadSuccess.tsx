@@ -1,3 +1,4 @@
+import { useScrollIntoView } from "@/src/components/features/shared/use-scroll-into-view"
 import { SuccessBurst } from "@/src/components/features/shared/SuccessBurst"
 import { FileDownloadActions } from "@/src/components/features/shared/FileDownloadActions"
 import type { VideoFile } from "@/src/types/api"
@@ -9,10 +10,11 @@ interface VideoDownloadSuccessProps {
 }
 
 export function VideoDownloadSuccess({ files, jobId, onClean }: VideoDownloadSuccessProps) {
+  const ref = useScrollIntoView<HTMLDivElement>(files.length > 0)
   if (!files.length) return null
 
   return (
-    <div role="status" className="mt-5 space-y-3 rounded-2xl border-2 border-mint bg-mint/10 p-4">
+    <div ref={ref} role="status" className="mt-5 space-y-3 rounded-2xl border-2 border-mint bg-mint/10 p-4">
       <div className="flex items-start gap-3">
         <SuccessBurst />
         <div className="flex-1">
