@@ -1,4 +1,4 @@
-import { Music } from "lucide-react"
+import { Link2, Music, Youtube } from "lucide-react"
 import { DOWNLOAD_MESSAGES } from "@/src/constants/messages"
 import type { AudioInfoResponse } from "@/src/types/api"
 
@@ -33,7 +33,27 @@ export function AudioInfoPreview({ audioInfo, loading = false }: AudioInfoPrevie
   }
 
   const { title, artist, platform, duration, thumbnail } = audioInfo.metadata
+  const PLATFORM_NAME: Record<string, string> = { youtube: "YouTube", spotify: "Spotify" }
+  const platformName = platform ? PLATFORM_NAME[platform.toLowerCase()] : undefined
   const safeThumb = thumbnail && /^(https?:|data:image\/)/.test(thumbnail) ? thumbnail : null
+
+  // The backend may only know the platform. Never invent a title: say what is true (the link is valid).
+  if (!title && !artist && !safeThumb) {
+    const PlatformIcon = platformName === "YouTube" ? Youtube : Link2
+    return (
+      <div role="status" className="-rotate-1 rounded-2xl border-2 border-cassette bg-cassette p-3 text-plum shadow-[4px_4px_0_var(--sun)]">
+        <div className="flex items-center gap-3">
+          <span aria-hidden="true" className="flex size-12 shrink-0 items-center justify-center rounded-xl border-2 border-plum bg-sun">
+            <PlatformIcon className="size-6" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-base font-bold">{platformName ? `Enlace de ${platformName} listo` : "Enlace listo"}</p>
+            <p className="text-sm text-plum/80">Elige formato y calidad, y pulsa Descargar.</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="-rotate-1 rounded-2xl border-2 border-cassette bg-cassette p-3 text-plum shadow-[4px_4px_0_var(--sun)]">
