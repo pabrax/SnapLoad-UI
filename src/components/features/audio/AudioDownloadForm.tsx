@@ -8,11 +8,10 @@ import { Input } from "@/src/components/ui/input"
 import { useDownload } from "@/src/hooks/use-download"
 import { useDownloadProgress } from "@/src/hooks/use-download-progress"
 import { useAudioDownload } from "@/src/hooks/use-audio-download"
-import { usePlaylistPolling } from "@/src/hooks/use-playlist-polling"
 import { AudioInfoPreview } from "./AudioInfoPreview"
 import { QualitySelector } from "./QualitySelector"
 import { AudioFormatSelector } from "./AudioFormatSelector"
-import { DownloadProgress } from "./DownloadProgress"
+import { DownloadProgress, stageLabel } from "./DownloadProgress"
 import { DownloadSuccess } from "./DownloadSuccess"
 import { DownloadError } from "./DownloadError"
 import { heroInputClass, heroLabelClass, primaryActionClass, cancelActionClass } from "@/src/components/features/shared/hero-field"
@@ -60,12 +59,6 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
     handlePlaylistDownload,
     resetPlaylistState,
   } = useAudioDownload()
-
-  const { pollingMessage } = usePlaylistPolling({
-    isActive: isPlaylistPolling,
-    progressStatus,
-    progressMessage,
-  })
 
   // Editing the URL resets stale errors and preview. It must depend on the URL only: also depending on
   // the errors made this effect wipe a failed job's message the moment it appeared (nothing was shown).
@@ -289,9 +282,7 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
           {isDownloading ? (
             <>
               <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              {progressMessage || (isPlaylistPolling 
-                ? DOWNLOAD_MESSAGES.PROCESSING.PLAYLIST_PROCESSING 
-                : DOWNLOAD_MESSAGES.PROCESSING.DOWNLOADING)}
+              {stageLabel(progressStatus, isPlaylistPolling)}
             </>
           ) : (
             <>
@@ -319,7 +310,6 @@ export default function AudioDownloadForm({ backendStatus }: AudioDownloadFormPr
         <DownloadProgress
           isPlaylistPolling={isPlaylistPolling}
           progressStatus={progressStatus}
-          pollingMessage={pollingMessage}
         />
       )}
 

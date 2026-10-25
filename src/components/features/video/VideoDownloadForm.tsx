@@ -9,7 +9,7 @@ import { VideoFormatSelector } from "./VideoFormatSelector"
 import { VideoResolutionSelector } from "./VideoResolutionSelector"
 import { VideoDownloadSuccess } from "./VideoDownloadSuccess"
 import { DownloadError } from "@/src/components/features/audio/DownloadError"
-import { DownloadProgress } from "@/src/components/features/audio/DownloadProgress"
+import { DownloadProgress, stageLabel } from "@/src/components/features/audio/DownloadProgress"
 import { useVideoDownload } from "@/src/hooks/use-video-download"
 import { isYouTubeVideoUrl, sanitizeYouTubeUrl } from "@/src/lib/validators"
 import { DEFAULT_VIDEO_FORMAT, DEFAULT_VIDEO_RESOLUTION } from "@/src/constants/video"
@@ -166,7 +166,7 @@ export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormPr
           {isDownloading ? (
             <>
               <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-              Procesando...
+              {stageLabel(status === "polling" ? "running" : "queued")}
             </>
           ) : (
             <>
@@ -194,7 +194,6 @@ export default function VideoDownloadForm({ backendStatus }: VideoDownloadFormPr
         <DownloadProgress
           isPlaylistPolling={false}
           progressStatus={status === "polling" ? "running" : "queued"}
-          pollingMessage={status === "polling" ? "Descargando video..." : "Iniciando descarga..."}
         />
       )}
 
