@@ -271,7 +271,7 @@ export default function LibraryPanel({ onGoToDownloads }: LibraryPanelProps) {
       <AlertDialog open={pendingDelete !== null} onOpenChange={(open) => !open && setPendingDelete(null)}>
         <AlertDialogContent className="max-w-md border-surface-border bg-card">
           <AlertDialogHeader>
-            <AlertDialogTitle className="font-display text-foreground">¿Eliminar esta canción?</AlertDialogTitle>
+            <AlertDialogTitle className="font-bold text-foreground">¿Eliminar esta canción?</AlertDialogTitle>
             <AlertDialogDescription className="text-muted-foreground">
               «{pendingDelete?.title ?? "Sin título"}» se borrará del servidor y no se puede recuperar.
             </AlertDialogDescription>

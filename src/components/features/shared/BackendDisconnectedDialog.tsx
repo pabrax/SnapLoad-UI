@@ -40,7 +40,7 @@ export function BackendDisconnectedDialog({ open, onOpenChange }: BackendDisconn
             <div className="p-2 rounded-full bg-tomato/15">
               <AlertCircle aria-hidden="true" className="w-6 h-6 text-tomato" />
             </div>
-            <AlertDialogTitle className="font-display text-xl text-foreground">
+            <AlertDialogTitle className="font-bold text-xl text-foreground">
               Servidor Desconectado
             </AlertDialogTitle>
           </div>

@@ -31,7 +31,7 @@
   --violet: #9c90ff;
   --sun: #ffc93c;
   --mint: #5ce1c6;
-  --tomato: #ff6b57;
+  --tomato: #ff8a3d;
 
   /* Mode: switched by data-mode on the page wrapper (audio is the default). */
   --mode: var(--coral);
@@ -156,12 +156,24 @@
   }
 }
 
-/* Page backdrop: static, one layer, tinted by the active mode (no blur, no animation). */
+/* Page backdrop: static, tinted by the active mode (no blur, no animation). The rings live in one small
+   pseudo-element instead of a gradient over the whole page, so there is little to paint above the fold. */
 .backdrop {
   background:
     radial-gradient(60% 50% at 12% 0%, color-mix(in oklab, var(--mode) 22%, transparent), transparent),
-    radial-gradient(50% 45% at 100% 100%, color-mix(in oklab, var(--violet) 16%, transparent), transparent),
-    repeating-radial-gradient(circle at 92% 6%, transparent 0 22px, color-mix(in oklab, var(--cassette) 5%, transparent) 22px 24px);
+    radial-gradient(50% 45% at 100% 100%, color-mix(in oklab, var(--violet) 16%, transparent), transparent);
+}
+.backdrop::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  top: -180px;
+  right: -180px;
+  width: 520px;
+  height: 520px;
+  border-radius: 9999px;
+  background: repeating-radial-gradient(circle, transparent 0 22px, color-mix(in oklab, var(--cassette) 7%, transparent) 22px 24px);
+  mask-image: radial-gradient(circle, black 35%, transparent 70%);
 }
 
 /* Hard offset shadow in the mode color: the identity's recurring "sticker" cue. */
